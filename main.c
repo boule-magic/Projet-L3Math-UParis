@@ -7,7 +7,7 @@
 int
 main(int argc, char **argv)
 {
-    struct image *image, *image2;
+    struct image *image;
     int rc;
 
     while(1) {
@@ -29,8 +29,14 @@ main(int argc, char **argv)
         return 1;
     }
 
+    image = read_png(argv[optind]);
+    if(image == NULL) {
+        fprintf(stderr, "Couldn't read %s\n", argv[optind]);
+        return 1;
+    }
+
     pal_image* pali = calloc(1, sizeof(pal_image));
-    if(image2 == NULL) {
+    if(pali == NULL) {
         fprintf(stderr, "Couldn't allocate pal_image.\n");
         return 1;
     }
@@ -82,7 +88,6 @@ main(int argc, char **argv)
     }
 
     free_image(image);
-    free_image(image2);
     free_pal_image(pali);
 
     return 0;

@@ -29,47 +29,6 @@ main(int argc, char **argv)
         return 1;
     }
 
-    image = read_png(argv[optind]);
-    if(image == NULL) {
-        fprintf(stderr, "Couldn't read %s\n", argv[optind]);
-        return 1;
-    }
-
-    image2 = calloc(1, sizeof(struct image));
-    if(image2 == NULL) {
-        fprintf(stderr, "Couldn't allocate image2.\n");
-        return 1;
-    }
-
-    image2->width = image->width;
-    image2->height = image->height;
-    image2->data = malloc(image->height * sizeof(unsigned char*));
-    if(image2->data == NULL) {
-        fprintf(stderr, "Couldn't allocate data 2.\n");
-        return 1;
-    }
-    for(int i = 0; i < image->height; i++) {
-        image2->data[i] = malloc(4 * image->width);
-        if(image2->data[i] == NULL) {
-            fprintf(stderr, "Couldn't allocate data 2.\n");
-            return 1;
-        }
-    }
-
-    for(int i = 0; i < image->height; i++) {
-        for(int j = 0; j < image->width; j++) {
-                image2->data[i][j * 4] =
-                    image->data[i][j * 4];
-                image2->data[i][j * 4 + 1] =
-                    image->data[i][j * 4+ 1];
-                image2->data[i][j * 4 + 2] =
-                    image->data[i][j * 4 + 2];
-                image2->data[i][j * 4 + 3] =
-                    image->data[i][j * 4 + 3];
-            }
-    }
-
-    //Moué début
     pal_image* pali = calloc(1, sizeof(pal_image));
     if(image2 == NULL) {
         fprintf(stderr, "Couldn't allocate pal_image.\n");
@@ -114,13 +73,6 @@ main(int argc, char **argv)
                 pali->data[i][j] = indice;
             }
 	}
-    }
-    //Moué fin
-
-    rc = write_png(argv[optind + 1], image);
-    if(rc < 0) {
-        fprintf(stderr, "Couldn't write %s.\n", argv[optind + 1]);
-        return 1;
     }
 
     rc = write_pal_png(argv[optind + 1], pali);

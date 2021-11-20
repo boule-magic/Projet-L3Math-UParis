@@ -82,7 +82,19 @@ main(int argc, char **argv)
     free_image(img);
     free_pal_image(pali);
 
-    system("eog img/output.png");
+
+    if(argv[optind + 1] == NULL) {
+	system("eog img/output.png");
+    }
+    else {
+	char cmd[strlen(argv[optind + 1]) + 5];
+	strcpy(cmd, "eog ");
+	strcat(cmd, argv[optind + 1]);	
+        system(cmd);
+    }
+
+
+    
 
     return 0;
 }

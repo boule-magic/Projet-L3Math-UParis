@@ -6,6 +6,7 @@ gcc -Wall main.c pngio.c -lpng -O2
 ```
 * Exécution : 
 ```
+./a.out img/taric.png
 ./a.out img/taric.png img/output.png
 ```
 ***

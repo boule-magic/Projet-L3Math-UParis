@@ -4,6 +4,35 @@
 
 #include "pngio.h"
 
+pal_image*
+new_pal_image(const image* img) {
+    pal_image* pali = calloc(1, sizeof(pal_image));
+    if(pali == NULL) {
+        fprintf(stderr, "Couldn't allocate pal_image.\n");
+        return NULL;
+    }
+    pali->width = img->width;
+    pali->height = img->height;
+    pali->data = malloc(img->height * sizeof(unsigned char*));
+    if(pali->data == NULL) {
+        fprintf(stderr, "Couldn't allocate data pal.\n");
+	free(pali);
+        return NULL;
+    }
+    pali->pal = calloc(255, 255*3*sizeof(unsigned char));
+    pali->pal_len = 0;
+    for(int i = 0; i < img->height; i++) {
+        pali->data[i] = malloc(img->width);
+        if(pali->data[i] == NULL) {
+            fprintf(stderr, "Couldn't allocate data pal.\n");
+	    free(pali->data);
+	    free(pali);
+            return NULL;
+        }
+    }
+    return pali;
+}
+
 void
 free_image(struct image *image)
 {

@@ -11,6 +11,7 @@ main(int argc, char **argv)
     struct image *img;
     int rc;
 
+    //lecture des paramètres du main (arc,argv)
     while(1) {
         int opt;
 
@@ -29,13 +30,15 @@ main(int argc, char **argv)
         fprintf(stderr, "Requires 1 or 2 parameters.\n");
         return 1;
     }
-
+    
+    //lecture de l'image source et mise en mémoire
     img = read_png(argv[optind]);
     if(img == NULL) {
         fprintf(stderr, "Couldn't read %s\n", argv[optind]);
         return 1;
     }
 
+    //création de l'image à palette de couleur
     pal_image* pali = new_pal_image(img);
     int indice = -1;
     for(int i = 0; i < img->height; i++) {
@@ -62,6 +65,7 @@ main(int argc, char **argv)
 	}
     }
 
+    //écriture du fichier (de l'image)
     if(argv[optind + 1] == NULL) {
         rc = write_pal_png("./img/output.png", pali);
 	if(rc < 0) {
@@ -76,13 +80,12 @@ main(int argc, char **argv)
 	    return 1;
 	}
     }
-
     
-
+    //free
     free_image(img);
     free_pal_image(pali);
 
-
+    //ouverture automatique de l'image générée
     if(argv[optind + 1] == NULL) {
 	system("eog img/output.png");
     }
@@ -92,9 +95,6 @@ main(int argc, char **argv)
 	strcat(cmd, argv[optind + 1]);	
         system(cmd);
     }
-
-
-    
 
     return 0;
 }

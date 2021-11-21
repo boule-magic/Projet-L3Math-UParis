@@ -2,9 +2,9 @@
 ***
 * Compilation : 
 ```
-gcc -Wall main.c pngio.c -lpng -O2
+gcc -Wall main.c palette.c pngio.c -lpng -O2
 ```
-* Exécution par défaut : 
+* Exécution par défaut (équivalent) : 
 ```
 ./a.out img/taric.png
 ./a.out img/taric.png img/output.png

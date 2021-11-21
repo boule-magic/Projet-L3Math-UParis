@@ -10,7 +10,6 @@ typedef struct pal_image {
     int pal_len;
 }pal_image;
 
-pal_image* new_pal_image(const image* img);
 void free_image(struct image *image);
 void free_pal_image(struct pal_image *image);
 struct image *read_png(char *filename);

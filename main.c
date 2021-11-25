@@ -5,14 +5,14 @@
 
 #include "palette.h"
 
-pal_image* new_pal_image(const image* img);
+struct pal_image* new_pal_image(const struct image* img);
 
 
 int
 main(int argc, char **argv)
 {
-    image* img;
-    pal_image* pali;
+    struct image* img;
+    struct pal_image* pali;
     int rc;
     char option = 0;
 
@@ -146,9 +146,9 @@ main(int argc, char **argv)
     return 0;
 }
 
-pal_image*
-new_pal_image(const image* img) {
-    pal_image* pali = calloc(1, sizeof(pal_image));
+struct pal_image*
+new_pal_image(const struct image* img) {
+    struct pal_image* pali = calloc(1, sizeof(struct pal_image));
     if(pali == NULL) {
         fprintf(stderr, "Couldn't allocate pal_image.\n");
         return NULL;

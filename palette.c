@@ -5,7 +5,7 @@
 #include "palette.h"
 
 void
-pal_8(pal_image* pali) {
+pal_8(struct pal_image* pali) {
     //rajouter un free au cas où pali->pal != NULL ?
     pali->pal = malloc(8*3*sizeof(unsigned char));
     pali->pal_len = 8;
@@ -21,7 +21,7 @@ pal_8(pal_image* pali) {
 }
 
 void
-pal_16(pal_image* pali) {
+pal_16(struct pal_image* pali) {
     pali->pal = malloc(16*3*sizeof(unsigned char));
     pali->pal_len = 16;
     for(int i = 0 ; i <= 1 ; i++) {
@@ -45,7 +45,7 @@ pal_16(pal_image* pali) {
 }
 
 void
-pal_64(pal_image* pali) {
+pal_64(struct pal_image* pali) {
     pali->pal = malloc(64*3*sizeof(unsigned char));
     pali->pal_len = 64;
     for(int i = 0 ; i <= 3 ; i++) {
@@ -60,7 +60,7 @@ pal_64(pal_image* pali) {
 }
 
 void
-pal_216(pal_image* pali) {
+pal_216(struct pal_image* pali) {
     pali->pal = malloc(216*3*sizeof(unsigned char));
     pali->pal_len = 216;
     for(int i = 0 ; i <= 5 ; i++) {
@@ -75,7 +75,7 @@ pal_216(pal_image* pali) {
 }
 
 void
-pal_252(pal_image* pali) {
+pal_252(struct pal_image* pali) {
     pali->pal = malloc(252*3*sizeof(unsigned char));
     pali->pal_len = 252;
     for(int i = 0 ; i <= 5 ; i++) {
@@ -97,7 +97,7 @@ pal_252(pal_image* pali) {
 }
 
 void
-pal_2(pal_image* pali) {
+pal_2(struct pal_image* pali) {
     pali->pal = malloc(2*3*sizeof(unsigned char));
     pali->pal_len = 2;
     for(int i = 0 ; i < pali->pal_len ; i++) {
@@ -108,7 +108,7 @@ pal_2(pal_image* pali) {
 }
 
 void
-pal_256(pal_image* pali) {
+pal_256(struct pal_image* pali) {
     pali->pal = malloc(256*3*sizeof(unsigned char));
     pali->pal_len = 256;
     for(int i = 0 ; i < pali->pal_len ; i++) {
@@ -119,7 +119,7 @@ pal_256(pal_image* pali) {
 }
 
 void
-gen_pal_image(pal_image* pali, const image* img) {
+gen_pal_image(struct pal_image* pali, const struct image* img) {
     int current=0, min=0, min_i = -1;
     for(int i = 0; i < img->height; i++) {
         for(int j = 0; j < img->width; j++) {

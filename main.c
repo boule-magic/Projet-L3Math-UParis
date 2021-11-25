@@ -15,36 +15,20 @@ main(int argc, char **argv)
     struct pal_image* pali;
     int rc;
     char option = 0;
+    int argument;
 
     //lecture des paramètres du main (arc,argv)
     while(1) {
         int opt;
 
-        opt = getopt(argc, argv, "abcdefg"); //"ab::c:" argless a, optarg b, mandatoryarg c
+        opt = getopt(argc, argv, "p:"); //"ab::c:" argless a, optarg b, mandatoryarg c
         if(opt < 0)
             break;
 	
         switch(opt) {
-	case 'a':
-	    option = 'a';
-	    break;
-	case 'b':
-	    option = 'b';
-	    break;
-	    case 'c':
-	    option = 'c';
-	    break;
-	case 'd':
-	    option = 'd';
-	    break;
-	    case 'e':
-	    option = 'e';
-	    break;
-	case 'f':
-	    option = 'f';
-	    break;
-	    case 'g':
-	    option = 'g';
+	case 'p': // "p" comme "palette"
+	    option = opt;
+	    argument = atoi(optarg);
 	    break;
         default:
             fprintf(stderr, "Unknown option %c.\n", opt);
@@ -71,45 +55,51 @@ main(int argc, char **argv)
         return 1;
     }
     switch(option) {
-    case 'a':
-	printf("Palette de 8 couleurs : saturation\n");
-	pal_8(pali); //définition palette de 8 couleurs
-	gen_pal_image(pali, img); //génération de l'image à palette de couleurs
-	break;
-    case 'b':
-	printf("Palette de 16 couleurs : CGA\n");
-	pal_16(pali);
-	gen_pal_image(pali, img);
-	break;
-    case 'c':
-	printf("Palette de 64 couleurs : 4-4-4\n");
-	pal_64(pali);
-	gen_pal_image(pali, img);
-	break;
-    case 'd':
-	printf("Palette de 216 couleurs : 6-6-6\n");
-	pal_216(pali);
-	gen_pal_image(pali, img);
-	break;
-    case 'e':
-	printf("Palette de 252 couleurs : 6-7-6\n");
-	pal_252(pali);
-	gen_pal_image(pali, img);
-	break;
-    case 'f':
-	printf("Palette de 2 couleurs : noir et blanc\n");
-	pal_2(pali);
-	gen_pal_image(pali, img);
-	break;
-    case 'g':
-	printf("Palette de 256 couleurs : niveaux de gris\n");
-	pal_256(pali);
-	gen_pal_image(pali, img);
+    case 'p':
+        switch(argument) {
+        case 8:
+	    printf("Palette de 8 couleurs : saturation\n");
+	    pal_8(pali); //définition palette de 8 couleurs
+	    gen_pal_image(pali, img); //génération de l'image à palette de couleurs
+	    break;
+	case 16:
+	    printf("Palette de 16 couleurs : CGA\n");
+	    pal_16(pali);
+	    gen_pal_image(pali, img);
+	    break;
+	case 64:
+	    printf("Palette de 64 couleurs : 4-4-4\n");
+	    pal_64(pali);
+	    gen_pal_image(pali, img);
+	    break;
+	case 216:
+	    printf("Palette de 216 couleurs : 6-6-6\n");
+	    pal_216(pali);
+	    gen_pal_image(pali, img);
+	    break;
+	case 252:
+	    printf("Palette de 252 couleurs : 6-7-6\n");
+	    pal_252(pali);
+	    gen_pal_image(pali, img);
+	    break;
+	case 2:
+	    printf("Palette de 2 couleurs : noir et blanc\n");
+	    pal_2(pali);
+	    gen_pal_image(pali, img);
+	    break;
+	case 256:
+	    printf("Palette de 256 couleurs : niveaux de gris\n");
+	    pal_256(pali);
+	    gen_pal_image(pali, img);
+	    break;
+	default:
+	    printf("Palette non disponible\n");
+	    return 1;
+	}
 	break;
     default:
-	pal_252(pali);
-	gen_pal_image(pali, img);
-	break;
+        printf("R\n");
+	return 1;
     }
 
     //écriture de l'image générée

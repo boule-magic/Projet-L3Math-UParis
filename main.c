@@ -93,12 +93,24 @@ main(int argc, char **argv)
 	    gen_pal_image(pali, img);
 	    break;
 	default:
-	    printf("Palette non disponible\n");
+	    printf("Unavailable palette\n");
+	    printf("The available palettes are :\n");
+	    printf("Colors :\n");
+	    printf("-p 8\n");
+	    printf("-p 16\n");
+	    printf("-p 64\n");
+	    printf("-p 216\n");
+	    printf("-p 252\n");
+	    printf("Black & white :\n");
+	    printf("-p 2\n");
+	    printf("-p 256\n");
 	    return 1;
 	}
 	break;
     default:
-        printf("R\n");
+        printf("Usage: ./a.out [options] file...\n");
+	printf("Options:\n");
+	printf("  -p <arg>    Select the number of colors in the palette:\n");
 	return 1;
     }
 

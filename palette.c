@@ -120,7 +120,7 @@ pal_256(struct pal_image* pali) {
 
 int
 gen_pal_image(struct pal_image* pali, const struct image* img) {
-    int exist;
+    int exist, min, min_i, current;
     if(pali->pal_len == -1 || pali->pal == NULL) {
 	pali->pal = calloc(3*256, 3*256*sizeof(char));
 	pali->pal_len = 0;
@@ -138,11 +138,11 @@ gen_pal_image(struct pal_image* pali, const struct image* img) {
 		}
 		if(exist == 0 && pali->pal_len < 256) {
 		    pali->pal_len++;
-		    pali->pal[pal_len*3-3] = img->data[i][j*4];
-		    pali->pal[pal_len*3-2] = img->data[i][j*4+1];
-		    pali->pal[pal_len*3-1] = img->data[i][j*4+2];
+		    pali->pal[pali->pal_len*3-3] = img->data[i][j*4];
+		    pali->pal[pali->pal_len*3-2] = img->data[i][j*4+1];
+		    pali->pal[pali->pal_len*3-1] = img->data[i][j*4+2];
 		    pali->data[i][j] = pali->pal_len-1;
-		} else if (exist == 0 && pali_len >= 256) {
+		} else if (exist == 0 && pali->pal_len >= 256) {
 		    return -1;
 		}
 	    }

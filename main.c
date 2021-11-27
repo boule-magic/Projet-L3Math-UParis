@@ -169,6 +169,9 @@ new_pal_image(const struct image* img) {
         pali->data[i] = malloc(img->width);
         if(pali->data[i] == NULL) {
             fprintf(stderr, "Couldn't allocate data pal.\n");
+            for ( int k = 0 ; k < i ; k++ ) {
+            	free( pli->data[k] ) ;
+            }
 	    free(pali->data);
 	    free(pali);
             return NULL;

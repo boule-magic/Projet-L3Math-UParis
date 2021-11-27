@@ -1,27 +1,30 @@
 # Projet-L3Math-UParis
 ***
-* Compilation : 
+Compilation : 
 ```
 gcc -Wall main.c palette.c pngio.c -lpng -O2
 ```
-* Exécution par défaut (équivalent) : 
+Exécution par défaut (équivalent) : 
 ```
 ./a.out img/taric.png
 ./a.out img/taric.png img/output.png
 ```
 ***
-* Options :
-  * a : Palette de 8 couleurs : saturation
-  * b : Palette de 16 couleurs : CGA
-  * c : Palette de 64 couleurs : 4-4-4
-  * d : Palette de 216 couleurs : 6-6-6
-  * e : Palette de 252 couleurs : 6-7-6
-  * f : Palette de 2 couleurs : noir et blanc
-  * g : Palette de 256 couleurs : niveaux de gris
+Options :
+ * p : Choix de la palette de couleurs
 ***
-* Exemple d'utilisation d'options :
+Arguments de l'options "-p" :
+  * 8 : Palette de 8 couleurs : saturation
+  * 16 : Palette de 16 couleurs : CGA
+  * 64 : Palette de 64 couleurs : 4-4-4
+  * 216 : Palette de 216 couleurs : 6-6-6
+  * 252 : Palette de 252 couleurs : 6-7-6
+  * 2 : Palette de 2 couleurs : noir et blanc
+  * 256 : Palette de 256 couleurs : niveaux de gris
+***
+Exemple d'utilisation d'options :
 ```
-./a.out -e img/taric.png
+./a.out img/taric.png -p 8
 ```
 ***
 Convertir des .jpg en .png (writergba)

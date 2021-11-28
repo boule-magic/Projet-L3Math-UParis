@@ -122,7 +122,7 @@ int
 gen_pal_image(struct pal_image* pali, const struct image* img) {
     int exist, min, min_i, current;
     if(pali->pal_len == -1 || pali->pal == NULL) {
-	pali->pal = calloc(3*256, 3*256*sizeof(char));
+	pali->pal = calloc(3*256, 3*256*sizeof(unsigned char));
 	pali->pal_len = 0;
 	for(int i = 0; i < img->height; i++) {
 	    for(int j = 0; j < img->width; j++) {
@@ -143,6 +143,8 @@ gen_pal_image(struct pal_image* pali, const struct image* img) {
 		    pali->pal[pali->pal_len*3-1] = img->data[i][j*4+2];
 		    pali->data[i][j] = pali->pal_len-1;
 		} else if (exist == 0 && pali->pal_len >= 256) {
+			free( pali->pal ) ;
+			pali->pal_len = -1 ;
 		    return -1;
 		}
 	    }
@@ -151,6 +153,7 @@ gen_pal_image(struct pal_image* pali, const struct image* img) {
 	for(int i = 0; i < img->height; i++) {
 	    for(int j = 0; j < img->width; j++) {
 		min = 3*255*255;
+		min_i = 0 ;
 		current = 0;
 		for(int k = 0; k < pali->pal_len; k++) {
 		    current = (pali->pal[k*3]-img->data[i][j*4])*(pali->pal[k*3]-img->data[i][j*4])

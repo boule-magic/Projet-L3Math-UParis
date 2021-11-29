@@ -17,6 +17,8 @@ main(int argc, char **argv)
     char option = 0;
     int argp = 0, argf = 0;
 
+    fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f]\n", argv[0]);
+    
     //lecture des paramètres du main (arc,argv)
     while(1) {
         int opt;
@@ -37,13 +39,13 @@ main(int argc, char **argv)
 	    argf = 1;
 	    break;
         default:
-            fprintf(stderr, "Usage: %s [-p number] [-f]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f]\n", argv[0]);
             return 1;
         }
     }
 
     if(argc != optind + 1 && argc != optind + 2) {
-        fprintf(stderr, "Requires 1 or 2 parameters.\n");
+        fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f]\n", argv[0]);
         return 1;
     }
     
@@ -60,6 +62,7 @@ main(int argc, char **argv)
 	fprintf(stderr, "Arf pali broken !\n");
         return 1;
     }
+    ///création de la palette de couleur
     switch(argp) {
         case 8:
 	    printf("Palette de 8 couleurs : saturation\n");
@@ -118,6 +121,7 @@ main(int argc, char **argv)
 	    printf("-p 256\n");
 	    return 1;
 	}
+    ///création de l'image indexée
     switch(argf) {
     case 0:
 	printf("Conversion en image indexée classique\n");
@@ -160,13 +164,22 @@ main(int argc, char **argv)
 
     //ouverture automatique de l'image générée
     if(argv[optind + 1] == NULL) {
-	system("eog img/output.png");
+	char cmd[] = "eog img/output.png";
+	int syst = system(cmd);
+	if ( syst != 0 ) {
+	    fprintf( stderr, "Unable to launch command : %s\n", cmd );
+	}
+	return 1;
     }
     else {
 	char cmd[strlen(argv[optind + 1]) + 5];
 	strcpy(cmd, "eog ");
 	strcat(cmd, argv[optind + 1]);	
-        system(cmd);
+        int syst = system(cmd);
+	if ( syst != 0 ) {
+	    fprintf( stderr, "Unable to launch command  : %s\n", cmd );
+	}
+	return 1;
     }
 
     return 0;

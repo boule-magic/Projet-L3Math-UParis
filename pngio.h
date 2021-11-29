@@ -15,4 +15,3 @@ void free_pal_image(struct pal_image *image);
 struct image *read_png(char *filename);
 int write_png(char *file, const struct image *image);
 int write_pal_png(char *file, const struct pal_image *image);
-

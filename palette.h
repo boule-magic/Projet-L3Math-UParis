@@ -8,4 +8,4 @@ void pal_252(struct pal_image* pali);
 void pal_2(struct pal_image* pali);
 void pal_256(struct pal_image* pali);
 int gen_pal_image(struct pal_image* pali, const struct image* img);
-struct pal_image* generation1(const struct image* img); //bricole à supprimer
+int floydSteinberg(struct pal_image* pali, struct image* img);

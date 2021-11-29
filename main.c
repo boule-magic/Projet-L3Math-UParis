@@ -15,23 +15,29 @@ main(int argc, char **argv)
     struct pal_image* pali;
     int rc;
     char option = 0;
-    int argument;
+    int argp = 0, argf = 0;
 
     //lecture des paramètres du main (arc,argv)
     while(1) {
         int opt;
 
-        opt = getopt(argc, argv, "p:"); //"ab::c:" argless a, optarg b, mandatoryarg c
+        opt = getopt(argc, argv, "fp:"); //"ab::c:" argless a, optarg b, mandatoryarg c
         if(opt < 0)
             break;
 	
         switch(opt) {
 	case 'p': // "p" comme "palette"
 	    option = opt;
-	    argument = atoi(optarg);
+	    if(optarg != NULL)
+		argp = atoi(optarg);
+	    else
+		argp = 0;
+	    break;
+	case 'f':
+	    argf = 1;
 	    break;
         default:
-            fprintf(stderr, "Unknown option %c.\n", opt);
+            fprintf(stderr, "Usage: %s [-p number] [-f]\n", argv[0]);
             return 1;
         }
     }
@@ -54,18 +60,14 @@ main(int argc, char **argv)
 	fprintf(stderr, "Arf pali broken !\n");
         return 1;
     }
-    switch(option) {
-    case 'p':
-        switch(argument) {
+    switch(argp) {
         case 8:
 	    printf("Palette de 8 couleurs : saturation\n");
 	    pal_8(pali); //définition palette de 8 couleurs
-	    gen_pal_image(pali, img); //génération de l'image à palette de couleurs
 	    break;
 	case 16:
 	    printf("Palette de 16 couleurs : CGA\n");
 	    pal_16(pali);
-	    gen_pal_image(pali, img);
 	    break;
 	case 64:
 	    printf("Palette de 64 couleurs : 4-4-4\n");
@@ -75,22 +77,32 @@ main(int argc, char **argv)
 	case 216:
 	    printf("Palette de 216 couleurs : 6-6-6\n");
 	    pal_216(pali);
-	    gen_pal_image(pali, img);
 	    break;
 	case 252:
 	    printf("Palette de 252 couleurs : 6-7-6\n");
 	    pal_252(pali);
-	    gen_pal_image(pali, img);
 	    break;
 	case 2:
 	    printf("Palette de 2 couleurs : noir et blanc\n");
 	    pal_2(pali);
-	    gen_pal_image(pali, img);
 	    break;
 	case 256:
 	    printf("Palette de 256 couleurs : niveaux de gris\n");
 	    pal_256(pali);
-	    gen_pal_image(pali, img);
+	    break;
+	case 0:
+	    printf("Conversion de l'image en image à palette de couleurs\n"); 
+	    printf("(fonctionne seulement si l'image est constituée de moins de 256 couleurs)\n");
+	    printf("The available palettes are :\n");
+	    printf("Colors :\n");
+	    printf("-p 8\n");
+	    printf("-p 16\n");
+	    printf("-p 64\n");
+	    printf("-p 216\n");
+	    printf("-p 252\n");
+	    printf("Black & white :\n");
+	    printf("-p 2\n");
+	    printf("-p 256\n");
 	    break;
 	default:
 	    printf("Unavailable palette\n");
@@ -106,14 +118,26 @@ main(int argc, char **argv)
 	    printf("-p 256\n");
 	    return 1;
 	}
+    switch(argf) {
+    case 0:
+	printf("Conversion en image indexée classique\n");
+	if(gen_pal_image(pali, img) == -1) {
+	    fprintf(stderr, "Conversion error\n");
+	    return 1;
+	}
+	break;
+    case 1:
+	printf("Conversion en image indexée + dispersion d'erreur de Floyd-Steinberg) buggée\n");
+	if(floydSteinberg(pali, img) == -1) {
+	    fprintf(stderr, "Conversion error\n");
+	    return 1;
+	}
 	break;
     default:
-        printf("Usage: ./a.out [options] file...\n");
-	printf("Options:\n");
-	printf("  -p <arg>    Select the number of colors in the palette:\n");
+	fprintf(stderr, "Invalid argf\n");
 	return 1;
     }
-
+    
     //écriture de l'image générée
     if(argv[optind + 1] == NULL) {
         rc = write_pal_png("./img/output.png", pali);

@@ -12,6 +12,7 @@ Exécution par défaut (équivalent) :
 ***
 Options :
  * p : Choix de la palette de couleurs
+ * f : Choix de l'algorithme Floyd-Steinberg
 ***
 Arguments de l'options "-p" :
   * 8 : Palette de 8 couleurs : saturation
@@ -24,7 +25,7 @@ Arguments de l'options "-p" :
 ***
 Exemple d'utilisation d'options :
 ```
-./a.out img/taric.png -p 8
+./a.out img/taric.png -p 8 -f
 ```
 ***
 Convertir des .jpg en .png (writergba)
@@ -44,9 +45,9 @@ sudo apt install valgrind
 ```
 * Compilation (valgrind) : 
 ```
-gcc -Wall main.c pngio.c -lpng -g
+gcc -Wall main.c palette.c pngio.c -lpng -g
 ```
 * Exécution (valgrind) : 
 ```
-valgrind ./a.out img/taric.png img/output.png
+valgrind ./a.out img/taric.png
 ```

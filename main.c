@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "palette.h"
+#include "conversion.h"
 
 struct pal_image* new_pal_image(const struct image* img);
 

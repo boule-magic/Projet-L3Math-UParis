@@ -7,6 +7,7 @@
 int max_abs (int a , int b ) ;
 int norme_a_la_puissance ( int num_norme , const struct image *initial , const struct pal_image *final , int k_pali , int i_data , int j_data ) ;
 
+
 int
 gen_pal_image(struct pal_image* pali, const struct image* img , int num_norme ) {
     int exist, min, min_i, current;
@@ -59,7 +60,7 @@ gen_pal_image(struct pal_image* pali, const struct image* img , int num_norme ) 
 }
 
 int
-floydSteinberg(struct pal_image* pali, struct image* img) {
+floydSteinberg(struct pal_image* pali, struct image* img , int num_norme ) {
     int exist, min, min_i, current;
     char newPixel[3], oldPixel[3], errorPixel[3];
     if(pali->pal_len == -1 || pali->pal == NULL) {
@@ -94,13 +95,11 @@ floydSteinberg(struct pal_image* pali, struct image* img) {
 		for(int l = 0 ; l < 3 ; l++) { // l=0 -> Red ; l=1 -> Green ; l=2 -> Blue ; 
 		    oldPixel[l] = img->data[i][j*4+l];
 		}
-		min = 3*255*255;
+		min = norme_a_la_puissance ( num_norme , img , pali , 0 , i , j ) ;
 		min_i = 0 ;
 		current = 0;
 		for(int k = 0; k < pali->pal_len; k++) {
-		    current = (pali->pal[k*3]-img->data[i][j*4])*(pali->pal[k*3]-img->data[i][j*4])
-			+ (pali->pal[k*3+1]-img->data[i][j*4+1])*(pali->pal[k*3+1]-img->data[i][j*4+1])
-			+ (pali->pal[k*3+2]-img->data[i][j*4+2])*(pali->pal[k*3+2]-img->data[i][j*4+2]);
+		    current = norme_a_la_puissance ( num_norme , img , pali , k , i , j ) ;
 		    if(current <= min) {
 			min_i = k;
 			min = current;
@@ -176,7 +175,7 @@ int max_abs (int a , int b ) {
 
 int norme_a_la_puissance ( int num_norme , const struct image *initial , const struct pal_image *final , int k_pali , int i_data , int j_data ) {
   int somme = 0 ;
-  if ( k_pali < final->pal_len && i_data < initial->height && j_data < initial->width && k_pali > 0 && i_data > 0 && j_data > 0 ) {
+  if ( k_pali < final->pal_len && i_data < initial->height && j_data < initial->width && k_pali >= 0 && i_data >= 0 && j_data >= 0 ) {
     if ( num_norme != 0 ) {
       for ( int rgb = 0 ; rgb < 3 ; rgb++ ) {
 	int produit = 1 ;

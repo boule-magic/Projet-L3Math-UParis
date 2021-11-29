@@ -2,7 +2,7 @@
 ***
 Compilation : 
 ```
-gcc -Wall main.c palette.c pngio.c -lpng -O2
+gcc -Wall main.c conversion.c palette.c pngio.c -lpng -O2
 ```
 Exécution par défaut (équivalent) : 
 ```
@@ -45,7 +45,7 @@ sudo apt install valgrind
 ```
 * Compilation (valgrind) : 
 ```
-gcc -Wall main.c palette.c pngio.c -lpng -g
+gcc -Wall main.c conversion.c palette.c pngio.c -lpng -g
 ```
 * Exécution (valgrind) : 
 ```

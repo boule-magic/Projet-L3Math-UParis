@@ -16,15 +16,15 @@ main(int argc, char **argv)
     struct pal_image* pali;
     int rc;
     char option = 0;
-    int argp = 0, argf = 0;
+    int argp = 0, argf = 0 , argn = 2 ;
 
-    fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f]\n", argv[0]);
+    fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f] [-n number]\n", argv[0]);
     
     //lecture des paramètres du main (arc,argv)
     while(1) {
         int opt;
 
-        opt = getopt(argc, argv, "fp:"); //"ab::c:" argless a, optarg b, mandatoryarg c
+        opt = getopt(argc, argv, "fp:n:"); //"ab::c:" argless a, optarg b, mandatoryarg c
         if(opt < 0)
             break;
 	
@@ -39,14 +39,20 @@ main(int argc, char **argv)
 	case 'f':
 	    argf = 1;
 	    break;
+	case 'n' :
+	    if(optarg != NULL)
+		argn = atoi(optarg) ;
+	    else
+		argn = 2 ;
+	    break;
         default:
-            fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f] [-n number]\n", argv[0]);
             return 1;
         }
     }
 
     if(argc != optind + 1 && argc != optind + 2) {
-        fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f] [-n number]\n", argv[0]);
         return 1;
     }
     
@@ -76,7 +82,7 @@ main(int argc, char **argv)
 	case 64:
 	    printf("Palette de 64 couleurs : 4-4-4\n");
 	    pal_64(pali);
-	    gen_pal_image(pali, img);
+	    gen_pal_image(pali, img , argn );
 	    break;
 	case 216:
 	    printf("Palette de 216 couleurs : 6-6-6\n");
@@ -126,7 +132,7 @@ main(int argc, char **argv)
     switch(argf) {
     case 0:
 	printf("Conversion en image indexée classique\n");
-	if(gen_pal_image(pali, img) == -1) {
+	if(gen_pal_image(pali, img , argn ) == -1) {
 	    fprintf(stderr, "Conversion error\n");
 	    return 1;
 	}

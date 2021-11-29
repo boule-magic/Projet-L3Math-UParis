@@ -4,8 +4,11 @@
 
 #include "conversion.h"
 
+int max_abs (int a , int b ) ;
+int norme_a_la_puissance ( int num_norme , const struct image *initial , const struct pal_image *final , int k_pali , int i_data , int j_data ) ;
+
 int
-gen_pal_image(struct pal_image* pali, const struct image* img) {
+gen_pal_image(struct pal_image* pali, const struct image* img , int num_norme ) {
     int exist, min, min_i, current;
     if(pali->pal_len == -1 || pali->pal == NULL) {
 	pali->pal = calloc(3*256, 3*256*sizeof(unsigned char));
@@ -38,13 +41,11 @@ gen_pal_image(struct pal_image* pali, const struct image* img) {
     } else {
 	for(int i = 0; i < img->height; i++) {
 	    for(int j = 0; j < img->width; j++) {
-		min = 3*255*255;
+		min = norme_a_la_puissance ( num_norme , img , pali , 0 , i , j ) ;
 		min_i = 0 ;
 		current = 0;
 		for(int k = 0; k < pali->pal_len; k++) {
-		    current = (pali->pal[k*3]-img->data[i][j*4])*(pali->pal[k*3]-img->data[i][j*4])
-			+ (pali->pal[k*3+1]-img->data[i][j*4+1])*(pali->pal[k*3+1]-img->data[i][j*4+1])
-			+ (pali->pal[k*3+2]-img->data[i][j*4+2])*(pali->pal[k*3+2]-img->data[i][j*4+2]);
+		    current = norme_a_la_puissance ( num_norme , img , pali , k , i , j ) ;
 		    if(current <= min) {
 			min_i = k;
 			min = current;
@@ -94,6 +95,7 @@ floydSteinberg(struct pal_image* pali, struct image* img) {
 		    oldPixel[l] = img->data[i][j*4+l];
 		}
 		min = 3*255*255;
+		min_i = 0 ;
 		current = 0;
 		for(int k = 0; k < pali->pal_len; k++) {
 		    current = (pali->pal[k*3]-img->data[i][j*4])*(pali->pal[k*3]-img->data[i][j*4])
@@ -153,4 +155,44 @@ floydSteinberg(struct pal_image* pali, struct image* img) {
 	}
     }
     return 1;
+}
+
+
+int max_abs (int a , int b ) {
+  if ( a < 0 ) {
+    a = -a ;
+  }
+  if ( b < 0 ) {
+    b = -b ;
+  }
+  if ( a > b ) {
+    return a ;
+  } else {
+    return b ;
+  }
+}
+
+/* 0 pour la norme infinie */
+
+int norme_a_la_puissance ( int num_norme , const struct image *initial , const struct pal_image *final , int k_pali , int i_data , int j_data ) {
+  int somme = 0 ;
+  if ( k_pali < final->pal_len && i_data < initial->height && j_data < initial->width && k_pali > 0 && i_data > 0 && j_data > 0 ) {
+    if ( num_norme != 0 ) {
+      for ( int rgb = 0 ; rgb < 3 ; rgb++ ) {
+	int produit = 1 ;
+	for ( int p = 0 ; p < num_norme ; p++ ) {
+	  produit *= final->pal[k_pali*3+rgb] - initial->data[i_data][j_data*4+rgb] ;
+	}
+	if ( produit < 0 ) {
+	  produit = - produit ;
+	}
+	somme += produit ;
+      }
+    } else {
+      return max_abs( max_abs( final->pal[k_pali*3] - initial->data[i_data][j_data*4] , final->pal[k_pali*3+1] - initial->data[i_data][j_data*4+1] ) , final->pal[k_pali*3+2] - initial->data[i_data][j_data*4+2] ) ;
+    }
+  } else {
+    return -1 ;
+  }
+  return somme ;
 }

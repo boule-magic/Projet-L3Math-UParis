@@ -13,6 +13,7 @@ Exécution par défaut (équivalent) :
 Options :
  * p : Choix de la palette de couleurs
  * f : Choix de l'algorithme Floyd-Steinberg
+ * s : Choix du coefficient de réduction de l'image (entier naturel)
 ***
 Arguments de l'options "-p" :
   * 8 : Palette de 8 couleurs : saturation
@@ -25,7 +26,7 @@ Arguments de l'options "-p" :
 ***
 Exemple d'utilisation d'options :
 ```
-./a.out img/taric.png -p 8 -f
+./a.out img/taric.png -s 2 -p 252 -f
 ```
 ***
 Convertir des .jpg en .png (writergba)

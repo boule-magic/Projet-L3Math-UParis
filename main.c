@@ -6,31 +6,26 @@
 #include "palette.h"
 #include "conversion.h"
 
-struct pal_image* new_pal_image(const struct image* img);
-
-
 int
 main(int argc, char **argv)
 {
     struct image* img;
     struct pal_image* pali;
     int rc;
-    char option = 0;
-    int argp = 0, argf = 0 , argn = 2 ;
+    int argp = 0, argf = 0 , argn = 2, args = 1;
 
-    fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f] [-n number]\n", argv[0]);
+    fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f] [-n number] [-s number]\n", argv[0]);
     
     //lecture des paramètres du main (arc,argv)
     while(1) {
         int opt;
 
-        opt = getopt(argc, argv, "fp:n:"); //"ab::c:" argless a, optarg b, mandatoryarg c
+        opt = getopt(argc, argv, "fp:n:s:"); //"ab::c:" argless a, optarg b, mandatoryarg c
         if(opt < 0)
             break;
 	
         switch(opt) {
 	case 'p': // "p" comme "palette"
-	    option = opt;
 	    if(optarg != NULL)
 		argp = atoi(optarg);
 	    else
@@ -44,6 +39,12 @@ main(int argc, char **argv)
 		argn = atoi(optarg) ;
 	    else
 		argn = 2 ;
+	    break;
+	case 's' :
+	    if(optarg != NULL)
+		args = atoi(optarg);
+	    else
+		args = 1;
 	    break;
         default:
             fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f] [-n number]\n", argv[0]);
@@ -61,6 +62,17 @@ main(int argc, char **argv)
     if(img == NULL) {
         fprintf(stderr, "Couldn't read %s\n", argv[optind]);
         return 1;
+    }
+
+    //redimensionnement
+    if(args > 1) {
+	struct image* smallimg = image_scaling(args, img);
+	if(smallimg == NULL) {
+	    fprintf(stderr, "Couldn't scale\n");
+	} else {
+	    free_image(img);
+	    img = smallimg;
+	}
     }
 
     //création de l'image à palette de couleur
@@ -138,7 +150,7 @@ main(int argc, char **argv)
 	}
 	break;
     case 1:
-	printf("Conversion en image indexée + dispersion d'erreur de Floyd-Steinberg) buggée\n");
+	printf("Conversion en image indexée + dispersion d'erreur de Floyd-Steinberg (buggée)\n");
 	if(floydSteinberg(pali, img , argn ) == -1) {
 	    fprintf(stderr, "Conversion error\n");
 	    return 1;
@@ -190,37 +202,5 @@ main(int argc, char **argv)
     }
 
     return 0;
-}
-
-struct pal_image*
-new_pal_image(const struct image* img) {
-    struct pal_image* pali = calloc(1, sizeof(struct pal_image));
-    if(pali == NULL) {
-        fprintf(stderr, "Couldn't allocate pal_image.\n");
-        return NULL;
-    }
-    pali->width = img->width;
-    pali->height = img->height;
-    pali->data = malloc(img->height * sizeof(unsigned char*));
-    if(pali->data == NULL) {
-        fprintf(stderr, "Couldn't allocate data pal.\n");
-	free(pali);
-        return NULL;
-    }
-    //pali->pal = NULL;
-    pali->pal_len = -1;
-    for(int i = 0; i < img->height; i++) {
-        pali->data[i] = malloc(img->width);
-        if(pali->data[i] == NULL) {
-            fprintf(stderr, "Couldn't allocate data pal.\n");
-            for ( int k = 0 ; k < i ; k++ ) {
-            	free( pali->data[k] ) ;
-            }
-	    free(pali->data);
-	    free(pali);
-            return NULL;
-        }
-    }
-    return pali;
 }
 

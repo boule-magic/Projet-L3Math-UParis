@@ -6,7 +6,39 @@
 
 int max_abs (int a , int b ) ;
 int norme_a_la_puissance ( int num_norme , const struct image *initial , const struct pal_image *final , int k_pali , int i_data , int j_data ) ;
+struct image* new_scaled_image(double factor, const struct image* img);
 
+struct pal_image*
+new_pal_image(const struct image* img) {
+    struct pal_image* pali = calloc(1, sizeof(struct pal_image));
+    if(pali == NULL) {
+        fprintf(stderr, "Couldn't allocate pal_image.\n");
+        return NULL;
+    }
+    pali->width = img->width;
+    pali->height = img->height;
+    pali->data = malloc(img->height * sizeof(unsigned char*));
+    if(pali->data == NULL) {
+        fprintf(stderr, "Couldn't allocate data pal.\n");
+	free(pali);
+        return NULL;
+    }
+    //pali->pal = NULL;
+    pali->pal_len = -1;
+    for(int i = 0; i < img->height; i++) {
+        pali->data[i] = malloc(img->width);
+        if(pali->data[i] == NULL) {
+            fprintf(stderr, "Couldn't allocate data pal.\n");
+            for ( int k = 0 ; k < i ; k++ ) {
+            	free( pali->data[k] ) ;
+            }
+	    free(pali->data);
+	    free(pali);
+            return NULL;
+        }
+    }
+    return pali;
+}
 
 int
 gen_pal_image(struct pal_image* pali, const struct image* img , int num_norme ) {
@@ -154,6 +186,57 @@ floydSteinberg(struct pal_image* pali, struct image* img , int num_norme ) {
 	}
     }
     return 1;
+}
+
+struct image*
+new_scaled_image(double factor, const struct image* img) {
+    struct image* smallimg = calloc(1, sizeof(struct pal_image));
+    if(smallimg == NULL) {
+        fprintf(stderr, "Couldn't allocate pal_image.\n");
+        return NULL;
+    }
+    smallimg->width = img->width/factor;
+    smallimg->height = img->height/factor;
+    smallimg->data = malloc(smallimg->height * sizeof(unsigned char*));
+    if(smallimg->data == NULL) {
+        fprintf(stderr, "Couldn't allocate data pal.\n");
+	free(smallimg);
+        return NULL;
+    }
+    for(int i = 0; i < smallimg->height; i++) {
+        smallimg->data[i] = malloc(4*smallimg->width);
+        if(smallimg->data[i] == NULL) {
+            fprintf(stderr, "Couldn't allocate data pal.\n");
+            for ( int k = 0 ; k < i ; k++ ) {
+            	free( smallimg->data[k] ) ;
+            }
+	    free(smallimg->data);
+	    free(smallimg);
+            return NULL;
+        }
+    }
+    return smallimg;
+}
+
+struct image*
+image_scaling(double factor, const struct image* img) {
+    struct image* smallimg = new_scaled_image(factor, img);
+    if(smallimg == NULL) {
+	return NULL;
+    }
+    for(int i = 0 ; i < smallimg->height ; i++) {
+	for(int j = 0 ; j < smallimg->width ; j++) {
+	    int fi = i*factor;
+	    int fj = j*factor;
+	    if(fi < img->height && fj < img->width) {
+	    smallimg->data[i][j*4  ] =  img->data[fi][fj*4  ];
+	    smallimg->data[i][j*4+1] =  img->data[fi][fj*4+1];
+	    smallimg->data[i][j*4+2] =  img->data[fi][fj*4+2];
+	    smallimg->data[i][j*4+3] =  img->data[fi][fj*4+3];
+	    }
+	}
+    }
+    return smallimg;
 }
 
 

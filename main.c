@@ -150,7 +150,7 @@ main(int argc, char **argv)
 	}
 	break;
     case 1:
-	printf("Conversion en image indexée + dispersion d'erreur de Floyd-Steinberg (buggée)\n");
+	printf("Conversion en image indexée + dispersion d'erreur de Floyd-Steinberg\n");
 	if(floydSteinberg(pali, img , argn ) == -1) {
 	    fprintf(stderr, "Conversion error\n");
 	    return 1;

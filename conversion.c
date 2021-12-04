@@ -95,7 +95,7 @@ int
 floydSteinberg(struct pal_image* pali, struct image* img , int num_norme ) {
     int exist, min, min_i, current;
     char newPixel[3], oldPixel[3], errorPixel[3];
-    if(pali->pal_len == -1 || pali->pal == NULL) {
+    if(pali->pal == NULL) {
 	pali->pal = calloc(3*256, 3*256*sizeof(char));
 	pali->pal_len = 0;
 	for(int i = 0; i < img->height; i++) {
@@ -142,9 +142,9 @@ floydSteinberg(struct pal_image* pali, struct image* img , int num_norme ) {
 		    newPixel[l] = pali->pal[min_i*3+l];
 		    errorPixel[l] = oldPixel[l] - newPixel[l];
 		}
-		int p;
+		int p; //C'était parfois plus jolie avec le bug (j*4+/-4 >/< 0/w
 		for(int l = 0 ; l < 3 ; l++) { //pixel est	        
-		    if(j*4+4 < img->width) {
+		    if(j+1 < img->width) {
 			p = img->data[i  ][j*4+4+l] + 7.0/16*errorPixel[l];
 			if(p < 0)
 			    img->data[i  ][j*4+4+l] = 0;
@@ -153,7 +153,7 @@ floydSteinberg(struct pal_image* pali, struct image* img , int num_norme ) {
 			else
 			    img->data[i  ][j*4+4+l] = p;
 		    }
-		    if(i+1 < img->height && j*4-4 >= 0) {  //pixel sud-ouest
+		    if(i+1 < img->height && j-1 >= 0) {  //pixel sud-ouest
 			p = img->data[i+1][j*4-4+l] + 3.0/16*errorPixel[l];
 			if(p < 0)
 			    img->data[i+1][j*4-4+l] = 0;
@@ -172,7 +172,7 @@ floydSteinberg(struct pal_image* pali, struct image* img , int num_norme ) {
 			else
 			    img->data[i+1][j*4  +l] = p;
 		    }
-		    if(i+1 < img->height && j*4+4 < img->width) { //pixel sud-est
+		    if(i+1 < img->height && j+1 < img->width) { //pixel sud-est
 			p = img->data[i+1][j*4+4+l] + 1.0/16*errorPixel[l];
 			if(p < 0)
 			    img->data[i+1][j*4+4+l] = 0;
@@ -221,6 +221,7 @@ new_scaled_image(double factor, const struct image* img) {
 struct image*
 image_scaling(double factor, const struct image* img) {
     struct image* smallimg = new_scaled_image(factor, img);
+    int error;
     if(smallimg == NULL) {
 	return NULL;
     }
@@ -228,12 +229,19 @@ image_scaling(double factor, const struct image* img) {
 	for(int j = 0 ; j < smallimg->width ; j++) {
 	    int fi = i*factor;
 	    int fj = j*factor;
-	    if(fi < img->height && fj < img->width) {
-	    smallimg->data[i][j*4  ] =  img->data[fi][fj*4  ];
-	    smallimg->data[i][j*4+1] =  img->data[fi][fj*4+1];
-	    smallimg->data[i][j*4+2] =  img->data[fi][fj*4+2];
-	    smallimg->data[i][j*4+3] =  img->data[fi][fj*4+3];
-	    }
+	    /* double ffi = i*factor - fi; */
+	    /* double ffj = j*factor - fj; */
+	    /* if(fi < img->height + 1 && fj < img->width + 1) { // bilinear interpolation (ou presque) crado */
+	    /* 	smallimg->data[i][j*4  ] =  (1-ffi)*img->data[fi][fj*4  ] + (ffi)*img->data[fi][fj*4+4  ]; */
+	    /* 	smallimg->data[i][j*4+1] =  (1-ffi)*img->data[fi][fj*4+1] + (ffi)*img->data[fi][fj*4+4+1]; */
+	    /* 	smallimg->data[i][j*4+2] =  (1-ffi)*img->data[fi][fj*4+2] + (ffi)*img->data[fi][fj*4+4+2]; */
+	    /* 	smallimg->data[i][j*4+3] =  (1-ffi)*img->data[fi][fj*4+3] + (ffi)*img->data[fi][fj*4+4+3]; */
+	    /* } else { */
+		smallimg->data[i][j*4  ] =  img->data[fi][fj*4  ];
+		smallimg->data[i][j*4+1] =  img->data[fi][fj*4+1];
+		smallimg->data[i][j*4+2] =  img->data[fi][fj*4+2];
+		smallimg->data[i][j*4+3] =  img->data[fi][fj*4+3];
+	    /* } */
 	}
     }
     return smallimg;

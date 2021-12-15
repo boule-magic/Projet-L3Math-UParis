@@ -94,7 +94,8 @@ gen_pal_image(struct pal_image* pali, const struct image* img , int num_norme ) 
 int
 floydSteinberg(struct pal_image* pali, struct image* img , int num_norme ) {
     int exist, min, min_i, current;
-    char newPixel[3], oldPixel[3], errorPixel[3];
+    unsigned char newPixel[3], oldPixel[3];
+    int errorPixel[3];
     if(pali->pal == NULL) {
 	pali->pal = calloc(3*256, 3*256*sizeof(char));
 	pali->pal_len = 0;
@@ -142,7 +143,7 @@ floydSteinberg(struct pal_image* pali, struct image* img , int num_norme ) {
 		    newPixel[l] = pali->pal[min_i*3+l];
 		    errorPixel[l] = oldPixel[l] - newPixel[l];
 		}
-		int p; //C'était parfois plus jolie avec le bug (j*4+/-4 >/< 0/w
+		int p;
 		for(int l = 0 ; l < 3 ; l++) { //pixel est	        
 		    if(j+1 < img->width) {
 			p = img->data[i  ][j*4+4+l] + 7.0/16*errorPixel[l];
@@ -161,7 +162,6 @@ floydSteinberg(struct pal_image* pali, struct image* img , int num_norme ) {
 			    img->data[i+1][j*4-4+l] = 255;
 			else
 			    img->data[i+1][j*4-4+l] = p;
-			    
 		    }
 		    if(i+1 < img->height) { //pixel sud
 			p = img->data[i+1][j*4  +l] + 5.0/16*errorPixel[l];
@@ -221,7 +221,6 @@ new_scaled_image(double factor, const struct image* img) {
 struct image*
 image_scaling(double factor, const struct image* img) {
     struct image* smallimg = new_scaled_image(factor, img);
-    int error;
     if(smallimg == NULL) {
 	return NULL;
     }

@@ -1,12 +1,14 @@
 #include <png.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "conversion.h"
 
 int max_abs (int a , int b ) ;
 int norme_a_la_puissance ( int num_norme , const struct image *initial , const struct pal_image *final , int k_pali , int i_data , int j_data ) ;
 struct image* new_scaled_image(double factor, const struct image* img);
+double norme(const unsigned char* C1, const unsigned char* C2);
 
 struct pal_image*
 new_pal_image(const struct image* img) {
@@ -42,7 +44,8 @@ new_pal_image(const struct image* img) {
 
 int
 gen_pal_image(struct pal_image* pali, const struct image* img , int num_norme ) {
-    int exist, min, min_i, current;
+    int exist, min_i;
+    double current, min;
     if(pali->pal_len == -1 || pali->pal == NULL) {
 	pali->pal = calloc(3*256, 3*256*sizeof(unsigned char));
 	pali->pal_len = 0;
@@ -50,9 +53,9 @@ gen_pal_image(struct pal_image* pali, const struct image* img , int num_norme ) 
 	    for(int j = 0; j < img->width; j++) {
 		exist = 0;
 		for(int k = 0; k < pali->pal_len; k++) {
-		    if(img->data[i][j*4] == pali->pal[k*3]
-		       && img->data[i][j*4+1] == pali->pal[k*3+1]
-		       && img->data[i][j*4+2] == pali->pal[k*3+2]) {
+		    if(img->data[i][j*4  ] == pali->pal[k*3  ] &&
+		       img->data[i][j*4+1] == pali->pal[k*3+1] &&
+		       img->data[i][j*4+2] == pali->pal[k*3+2]) {
 			pali->data[i][j] = k;
 			exist = 1;
 			break;
@@ -74,16 +77,16 @@ gen_pal_image(struct pal_image* pali, const struct image* img , int num_norme ) 
     } else {
 	for(int i = 0; i < img->height; i++) {
 	    for(int j = 0; j < img->width; j++) {
-		min = norme_a_la_puissance ( num_norme , img , pali , 0 , i , j ) ;
+		min = norme(&img->data[i][j*4], &pali->pal[0]) ;
 		min_i = 0 ;
 		current = 0;
 		for(int k = 0; k < pali->pal_len; k++) {
-		    current = norme_a_la_puissance ( num_norme , img , pali , k , i , j ) ;
+		    current = norme(&img->data[i][j*4], &pali->pal[k*3]) ;
 		    if(current <= min) {
 			min_i = k;
 			min = current;
 		    }			   
-		}					
+		}
 		pali->data[i][j] = min_i;
 	    }
 	}
@@ -93,7 +96,8 @@ gen_pal_image(struct pal_image* pali, const struct image* img , int num_norme ) 
 
 int
 floydSteinberg(struct pal_image* pali, struct image* img , int num_norme ) {
-    int exist, min, min_i, current;
+    int exist, min_i;
+    double min, current;
     unsigned char newPixel[3], oldPixel[3];
     int errorPixel[3];
     if(pali->pal == NULL) {
@@ -128,11 +132,11 @@ floydSteinberg(struct pal_image* pali, struct image* img , int num_norme ) {
 		for(int l = 0 ; l < 3 ; l++) { // l=0 -> Red ; l=1 -> Green ; l=2 -> Blue ; 
 		    oldPixel[l] = img->data[i][j*4+l];
 		}
-		min = norme_a_la_puissance ( num_norme , img , pali , 0 , i , j ) ;
+		min = norme(&img->data[i][j*4], &pali->pal[0]);
 		min_i = 0 ;
 		current = 0;
 		for(int k = 0; k < pali->pal_len; k++) {
-		    current = norme_a_la_puissance ( num_norme , img , pali , k , i , j ) ;
+		    current = norme(&img->data[i][j*4], &pali->pal[k*3]) ;
 		    if(current <= min) {
 			min_i = k;
 			min = current;
@@ -284,4 +288,73 @@ int norme_a_la_puissance ( int num_norme , const struct image *initial , const s
     return -1 ;
   }
   return somme ;
+}
+
+
+
+double norme(const unsigned char* C1, const unsigned char* C2) {
+
+    double R1 = C1[0]/255.0;
+    double G1 = C1[1]/255.0;
+    double B1 = C1[2]/255.0;
+
+    double R2 = C2[0]/255.0;
+    double G2 = C2[1]/255.0;
+    double B2 = C2[2]/255.0;
+    
+    // convert sRGB (R,G,B) to linear-rgb (r,g,b)
+    double r = (R1 <= 0.04045) ? R1/12.92 : pow((R1+0.055)/1.055,2.4);
+    double g = (G1 <= 0.04045) ? G1/12.92 : pow((G1+0.055)/1.055,2.4);
+    double b = (B1 <= 0.04045) ? B1/12.92 : pow((B1+0.055)/1.055,2.4);
+ 
+    // convert to XYZ (assuming sRGB was D65)
+    double X =  r*0.4124564 + g*0.3575761 + b*0.1804375;
+    double Y =  r*0.2126729 + g*0.7151522 + b*0.0721750;
+    double Z =  r*0.0193339 + g*0.1191920 + b*0.9503041;
+ 
+    // Rescale X/Y/Z relative to white point D65
+    double Xr = 0.95047, Yr = 1.0, Zr = 1.08883;
+    double xr = X/Xr;
+    double yr = Y/Yr;
+    double zr = Z/Zr;
+ 
+    // tristimulus function
+    double eps = 216/24389.0, k = 24389/27.0;
+    double fx = (xr <= eps) ? (k * xr + 16.0)/ 116.0 : pow(xr, 1/3.0);
+    double fy = (yr <= eps) ? (k * yr + 16.0)/ 116.0 : pow(yr, 1/3.0);
+    double fz = (zr <= eps) ? (k * zr + 16.0)/ 116.0 : pow(zr, 1/3.0);
+ 
+    // tranform to LAB  
+    double LAB_L1 = ( 116 * fy ) - 16;
+    double LAB_a1 = 500*(fx-fy);
+    double LAB_b1 = 200*(fy-fz);
+
+    // convert sRGB (R,G,B) to linear-rgb (r,g,b)
+    r = (R2 <= 0.04045) ? R2/12.92 : pow((R2+0.055)/1.055,2.4);
+    g = (G2 <= 0.04045) ? G2/12.92 : pow((G2+0.055)/1.055,2.4);
+    b = (B2 <= 0.04045) ? B2/12.92 : pow((B2+0.055)/1.055,2.4);
+ 
+    // convert to XYZ (assuming sRGB was D65)
+    X =  r*0.4124564 + g*0.3575761 + b*0.1804375;
+    Y =  r*0.2126729 + g*0.7151522 + b*0.0721750;
+    Z =  r*0.0193339 + g*0.1191920 + b*0.9503041;
+ 
+    // Rescale X/Y/Z relative to white point D65
+    Xr = 0.95047, Yr = 1.0, Zr = 1.08883;
+    xr = X/Xr;
+    yr = Y/Yr;
+    zr = Z/Zr;
+ 
+    // tristimulus function
+    eps = 216/24389.0, k = 24389/27.0;
+    fx = (xr <= eps) ? (k * xr + 16.0)/ 116.0 : pow(xr, 1/3.0);
+    fy = (yr <= eps) ? (k * yr + 16.0)/ 116.0 : pow(yr, 1/3.0);
+    fz = (zr <= eps) ? (k * zr + 16.0)/ 116.0 : pow(zr, 1/3.0);
+ 
+    // tranform to LAB  
+    double LAB_L2 = ( 116 * fy ) - 16;
+    double LAB_a2 = 500*(fx-fy);
+    double LAB_b2 = 200*(fy-fz);
+
+    return sqrt((LAB_L1-LAB_L2)*(LAB_L1-LAB_L2) + (LAB_a1-LAB_a2)*(LAB_a1-LAB_a2) + (LAB_b1-LAB_b2)*(LAB_b1-LAB_b2));
 }

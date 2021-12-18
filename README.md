@@ -1,8 +1,12 @@
 # Projet-L3Math-UParis
 ***
+Setup : 
+```
+chmod +x ./compile
+```
 Compilation : 
 ```
-gcc -Wall main.c conversion.c palette.c pngio.c -lpng -O2
+./compile
 ```
 Exécution par défaut (équivalent) : 
 ```
@@ -46,7 +50,7 @@ sudo apt install valgrind
 ```
 * Compilation (valgrind) : 
 ```
-gcc -Wall main.c conversion.c palette.c pngio.c -lpng -g
+gcc -Wall main.c conversion.c palette.c pngio.c -lpng -lm -g
 ```
 * Exécution (valgrind) : 
 ```

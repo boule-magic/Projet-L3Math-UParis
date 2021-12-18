@@ -1,0 +1,2 @@
+#!/bin/bash
+gcc -Wall main.c conversion.c palette.c pngio.c -lpng -lm -O2

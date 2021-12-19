@@ -12,48 +12,43 @@ main(int argc, char **argv)
     struct image* img;
     struct pal_image* pali;
     int rc;
-    int argp = 0, argf = 0 , argn = 2, args = 1;
+    int argp = 0, argd = 0 , argn = 2, args = 1;
 
-    fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f] [-n number] [-s number]\n", argv[0]);
+    fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1 or 2] [-n number] [-s number]\n", argv[0]);
     
     //lecture des paramètres du main (arc,argv)
     while(1) {
         int opt;
 
-        opt = getopt(argc, argv, "fp:n:s:"); //"ab::c:" argless a, optarg b, mandatoryarg c
+        opt = getopt(argc, argv, "d:p:n:s:"); //"ab::c:" argless a, optarg b, mandatoryarg c
         if(opt < 0)
             break;
 	
         switch(opt) {
 	case 'p': // "p" comme "palette"
-	    if(optarg != NULL)
-		argp = atoi(optarg);
-	    else
-		argp = 0;
+	    if(optarg != NULL) 	argp = atoi(optarg);
+	    else argp = 0;
 	    break;
-	case 'f':
-	    argf = 1;
+	case 'd':
+	    if(optarg != NULL) argd = atoi(optarg) ;
+	    else argd = 0 ;
 	    break;
 	case 'n' :
-	    if(optarg != NULL)
-		argn = atoi(optarg) ;
-	    else
-		argn = 2 ;
+	    if(optarg != NULL) argn = atoi(optarg) ;
+	    else argn = 2 ;
 	    break;
 	case 's' :
-	    if(optarg != NULL)
-		args = atoi(optarg);
-	    else
-		args = 1;
+	    if(optarg != NULL) args = atoi(optarg);
+	    else args = 1;
 	    break;
         default:
-            fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f] [-n number]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1 or 2] [-n number]\n", argv[0]);
             return 1;
         }
     }
 
     if(argc != optind + 1 && argc != optind + 2) {
-        fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-f] [-n number]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1 or 2] [-n number]\n", argv[0]);
         return 1;
     }
     
@@ -141,7 +136,7 @@ main(int argc, char **argv)
 	    return 1;
 	}
     ///création de l'image indexée
-    switch(argf) {
+    switch(argd) {
     case 0:
 	printf("Conversion en image indexée classique\n");
 	if(gen_pal_image(pali, img , argn ) == -1) {
@@ -156,8 +151,15 @@ main(int argc, char **argv)
 	    return 1;
 	}
 	break;
+    case 2:
+	printf("Conversion en image indexée + dispersion d'erreur d'Atkinson\n");
+	if(atkinson(pali, img , argn ) == -1) {
+	    fprintf(stderr, "Conversion error\n");
+	    return 1;
+	}
+	break;
     default:
-	fprintf(stderr, "Invalid argf\n");
+	fprintf(stderr, "Invalid argd\n");
 	return 1;
     }
     

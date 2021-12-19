@@ -11,4 +11,7 @@ void pal_252(struct pal_image* pali);
 void pal_2(struct pal_image* pali);
 void pal_256(struct pal_image* pali);
 
+unsigned char findClosestColorFromPalette(const unsigned char* originalPixel, const unsigned char* palette, const int pal_len);
+int norme(const unsigned char* C1, const unsigned char* C2);
+
 #endif

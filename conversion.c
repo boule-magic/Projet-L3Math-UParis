@@ -95,35 +95,37 @@ gen_pal_image(struct pal_image* pali, struct image* img , int num_norme ) {
     return 1;
 }
 
+////////////////////////////// Dithering
+
 int
 floydSteinberg(struct pal_image* pali, struct image* img , int num_norme ) {
     unsigned char newPixel[3], originalPixel[3], index;
     int errorPixel[3];
     if(pali->pal == NULL) {
         return -1;
-    } else {
-	for(int i = 0; i < img->height; i++) {
-	    for(int j = 0; j < img->width; j++) {
-		originalPixel[0] = img->data[i][j*4  ];
-		originalPixel[1] = img->data[i][j*4+1];
-		originalPixel[2] = img->data[i][j*4+2];
+    }
+    for(int i = 0; i < img->height; i++) {
+	for(int j = 0; j < img->width; j++) {
+	    originalPixel[0] = img->data[i][j*4  ];
+	    originalPixel[1] = img->data[i][j*4+1];
+	    originalPixel[2] = img->data[i][j*4+2];
 		
-		index = findClosestColorFromPalette(originalPixel, pali->pal, pali->pal_len);
-		pali->data[i][j] = index;
+	    index = findClosestColorFromPalette(originalPixel, pali->pal, pali->pal_len);
+	    pali->data[i][j] = index;
 		
-		newPixel[0] = pali->pal[index*3  ];
-		newPixel[1] = pali->pal[index*3+1];
-		newPixel[2] = pali->pal[index*3+2];
+	    newPixel[0] = pali->pal[index*3  ];
+	    newPixel[1] = pali->pal[index*3+1];
+	    newPixel[2] = pali->pal[index*3+2];
 		
-		errorPixelCalcul(originalPixel, newPixel, errorPixel);
+	    errorPixelCalcul(originalPixel, newPixel, errorPixel);
 		
-		if(j+1 < img->width) errorApplication(&img->data[i][j*4+4], errorPixel, 7.0/16); //pixel est
-		if(i+1 < img->height && j-1 >= 0) errorApplication(&img->data[i+1][j*4-4], errorPixel, 3.0/16); //pixel sud-ouest
-		if(i+1 < img->height) errorApplication(&img->data[i+1][j*4], errorPixel, 5.0/16); //pixel sud
-		if(i+1 < img->height && j+1 < img->width) errorApplication(&img->data[i+1][j*4+4], errorPixel, 1.0/16);//pixel sud-est
-	    }
+	    if(j+1 < img->width) errorApplication(&img->data[i][j*4+4], errorPixel, 7.0/16); //pixel est
+	    if(i+1 < img->height && j-1 >= 0) errorApplication(&img->data[i+1][j*4-4], errorPixel, 3.0/16); //pixel sud-ouest
+	    if(i+1 < img->height) errorApplication(&img->data[i+1][j*4], errorPixel, 5.0/16); //pixel sud
+	    if(i+1 < img->height && j+1 < img->width) errorApplication(&img->data[i+1][j*4+4], errorPixel, 1.0/16);//pixel sud-est
 	}
     }
+
     return 1;
 }
 
@@ -133,31 +135,31 @@ atkinson(struct pal_image* pali, struct image* img , int num_norme ) {
     int errorPixel[3];
     if(pali->pal == NULL) {
         return -1;
-    } else {
-	for(int i = 0; i < img->height; i++) {
-	    for(int j = 0; j < img->width; j++) {
-		originalPixel[0] = img->data[i][j*4  ];
-		originalPixel[1] = img->data[i][j*4+1];
-		originalPixel[2] = img->data[i][j*4+2];
+    }
+    for(int i = 0; i < img->height; i++) {
+	for(int j = 0; j < img->width; j++) {
+	    originalPixel[0] = img->data[i][j*4  ];
+	    originalPixel[1] = img->data[i][j*4+1];
+	    originalPixel[2] = img->data[i][j*4+2];
 		
-		index = findClosestColorFromPalette(originalPixel, pali->pal, pali->pal_len);
-		pali->data[i][j] = index;
+	    index = findClosestColorFromPalette(originalPixel, pali->pal, pali->pal_len);
+	    pali->data[i][j] = index;
 		
-		newPixel[0] = pali->pal[index*3  ];
-		newPixel[1] = pali->pal[index*3+1];
-		newPixel[2] = pali->pal[index*3+2];
+	    newPixel[0] = pali->pal[index*3  ];
+	    newPixel[1] = pali->pal[index*3+1];
+	    newPixel[2] = pali->pal[index*3+2];
 		
-		errorPixelCalcul(originalPixel, newPixel, errorPixel);
+	    errorPixelCalcul(originalPixel, newPixel, errorPixel);
 		
-		if(j+1 < img->width) errorApplication(&img->data[i][j*4+4], errorPixel, 1.0/8); //pixel est
-		if(j+2 < img->width) errorApplication(&img->data[i][j*4+8], errorPixel, 1.0/8); //pixel est est
-		if(i+1 < img->height && j-1 >= 0) errorApplication(&img->data[i+1][j*4-4], errorPixel, 1.0/8); //pixel sud-ouest
-		if(i+1 < img->height) errorApplication(&img->data[i+1][j*4], errorPixel, 1.0/8); //pixel sud
-		if(i+1 < img->height && j+1 < img->width) errorApplication(&img->data[i+1][j*4+4], errorPixel, 1.0/8);//pixel sud-est
-		if(i+2 < img->height) errorApplication(&img->data[i+2][j*4], errorPixel, 1.0/8); //pixel sud sud
-	    }
+	    if(j+1 < img->width) errorApplication(&img->data[i][j*4+4], errorPixel, 1.0/8); //pixel est
+	    if(j+2 < img->width) errorApplication(&img->data[i][j*4+8], errorPixel, 1.0/8); //pixel est est
+	    if(i+1 < img->height && j-1 >= 0) errorApplication(&img->data[i+1][j*4-4], errorPixel, 1.0/8); //pixel sud-ouest
+	    if(i+1 < img->height) errorApplication(&img->data[i+1][j*4], errorPixel, 1.0/8); //pixel sud
+	    if(i+1 < img->height && j+1 < img->width) errorApplication(&img->data[i+1][j*4+4], errorPixel, 1.0/8);//pixel sud-est
+	    if(i+2 < img->height) errorApplication(&img->data[i+2][j*4], errorPixel, 1.0/8); //pixel sud sud
 	}
     }
+	
     return 1;
 }
 

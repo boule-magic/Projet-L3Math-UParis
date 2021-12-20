@@ -1,6 +1,7 @@
 #include <png.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "palette.h"
 #include "conversion.h"
@@ -11,6 +12,43 @@ struct image* new_scaled_image(double factor, const struct image* img);
 void errorPixelCalcul(unsigned char* originalPixel, unsigned char* newPixel, int* errorPixel);
 void errorApplication(unsigned char* pixel, int* errorPixel, double coef);
 unsigned char uCharCap(int num);
+
+const	int BAYER_4X4[4][4]  =  {        //	4x4 Bayer Dithering Matrix. Color levels: 17
+    {	 15, 195,  60, 240	},
+    {	135,  75, 180, 120	},
+    {	 45, 225,  30, 210	},
+    {	165, 105, 150,  90	}
+
+};
+const	int BAYER_8X8[8][8]		=	{	//	8x8 Bayer Dithering Matrix. Color levels: 65
+    {	  0, 128,  32, 160,   8, 136,  40, 168	},
+    {	192,  64, 224,  96, 200,  72, 232, 104	},
+    {	 48, 176,  16, 144,  56, 184,  24, 152	},
+    {	240, 112, 208,  80, 248, 120, 216,  88	},
+    {	 12, 140,  44, 172,   4, 132,  36, 164	},
+    {	204,  76, 236, 108, 196,  68, 228, 100	},
+    {	 60, 188,  28, 156,  52, 180,  20, 148	},
+    {	252, 124, 220,  92, 244, 116, 212,  84	}
+};
+
+const	int	BAYER_16X16[16][16]	=	{	//	16x16 Bayer Dithering Matrix.  Color levels: 256
+    {	  0, 191,  48, 239,  12, 203,  60, 251,   3, 194,  51, 242,  15, 206,  63, 254	}, 
+    {	127,  64, 175, 112, 139,  76, 187, 124, 130,  67, 178, 115, 142,  79, 190, 127	},
+    {	 32, 223,  16, 207,  44, 235,  28, 219,  35, 226,  19, 210,  47, 238,  31, 222	},
+    {	159,  96, 143,  80, 171, 108, 155,  92, 162,  99, 146,  83, 174, 111, 158,  95	},
+    {	  8, 199,  56, 247,   4, 195,  52, 243,  11, 202,  59, 250,   7, 198,  55, 246	},
+    {	135,  72, 183, 120, 131,  68, 179, 116, 138,  75, 186, 123, 134,  71, 182, 119	},
+    {	 40, 231,  24, 215,  36, 227,  20, 211,  43, 234,  27, 218,  39, 230,  23, 214	},
+    {	167, 104, 151,  88, 163, 100, 147,  84, 170, 107, 154,  91, 166, 103, 150,  87	},
+    {	  2, 193,  50, 241,  14, 205,  62, 253,   1, 192,  49, 240,  13, 204,  61, 252	},
+    {	129,  66, 177, 114, 141,  78, 189, 126, 128,  65, 176, 113, 140,  77, 188, 125	},
+    {	 34, 225,  18, 209,  46, 237,  30, 221,  33, 224,  17, 208,  45, 236,  29, 220	},
+    {	161,  98, 145,  82, 173, 110, 157,  94, 160,  97, 144,  81, 172, 109, 156,  93	},
+    {	 10, 201,  58, 249,   6, 197,  54, 245,   9, 200,  57, 248,   5, 196,  53, 244	},
+    {	137,  74, 185, 122, 133,  70, 181, 118, 136,  73, 184, 121, 132,  69, 180, 117	},
+    {	 42, 233,  26, 217,  38, 229,  22, 213,  41, 232,  25, 216,  37, 228,  21, 212	},
+    {	169, 106, 153,  90, 165, 102, 149,  86, 168, 105, 152,  89, 164, 101, 148,  85	}
+};
 
 struct pal_image*
 new_pal_image(const struct image* img) {
@@ -45,30 +83,21 @@ new_pal_image(const struct image* img) {
 }
 
 int
-gen_pal_image(struct pal_image* pali, struct image* img , int num_norme ) {
-    int exist, min, min_i, current;
+naive_pal_image(struct pal_image* pali, const struct image* img) {
+    int exist;
     if(pali->pal_len == -1 || pali->pal == NULL) {
 	pali->pal = calloc(3*256, 3*256*sizeof(unsigned char));
 	pali->pal_len = 0;
 	for(int i = 0; i < img->height; i++) {
 	    for(int j = 0; j < img->width; j++) {
-		exist = 0;
-		for(int k = 0; k < pali->pal_len; k++) {
-		    if(img->data[i][j*4] == pali->pal[k*3]
-		       && img->data[i][j*4+1] == pali->pal[k*3+1]
-		       && img->data[i][j*4+2] == pali->pal[k*3+2]) {
-			pali->data[i][j] = k;
-			exist = 1;
-			break;
-		    }
-		}
-		if(exist == 0 && pali->pal_len < 256) {
+		exist = findClosestColorFromPalette(&img->data[i][j*4], pali->pal, pali->pal_len);
+		if(exist == -1 && pali->pal_len < 256) {
 		    pali->pal_len++;
 		    pali->pal[pali->pal_len*3-3] = img->data[i][j*4];
 		    pali->pal[pali->pal_len*3-2] = img->data[i][j*4+1];
 		    pali->pal[pali->pal_len*3-1] = img->data[i][j*4+2];
 		    pali->data[i][j] = pali->pal_len-1;
-		} else if (exist == 0 && pali->pal_len >= 256) {
+		} else if (exist == -1 && pali->pal_len >= 256) {
 			free( pali->pal ) ;
 			pali->pal_len = -1 ;
 		    return -1;
@@ -77,18 +106,8 @@ gen_pal_image(struct pal_image* pali, struct image* img , int num_norme ) {
 	}
     } else {
 	for(int i = 0; i < img->height; i++) {
-	    for(int j = 0; j < img->width; j++) {
-		min = norme_a_la_puissance ( num_norme , img , pali , 0 , i , j ) ;
-		min_i = 0 ;
-		current = 0;
-		for(int k = 0; k < pali->pal_len; k++) {
-		    current = norme_a_la_puissance ( num_norme , img , pali , k , i , j ) ;
-		    if(current <= min) {
-			min_i = k;
-			min = current;
-		    }			   
-		}					
-		pali->data[i][j] = min_i;
+	    for(int j = 0; j < img->width; j++) {					
+		pali->data[i][j] = findClosestColorFromPalette(&img->data[i][j*4], pali->pal, pali->pal_len);
 	    }
 	}
     }
@@ -98,7 +117,7 @@ gen_pal_image(struct pal_image* pali, struct image* img , int num_norme ) {
 ////////////////////////////// Dithering
 
 int
-floydSteinberg(struct pal_image* pali, struct image* img , int num_norme ) {
+floydSteinberg_pal_image(struct pal_image* pali, struct image* img) {
     unsigned char newPixel[3], originalPixel[3], index;
     int errorPixel[3];
     if(pali->pal == NULL) {
@@ -130,7 +149,7 @@ floydSteinberg(struct pal_image* pali, struct image* img , int num_norme ) {
 }
 
 int
-atkinson(struct pal_image* pali, struct image* img , int num_norme ) {
+atkinson_pal_image(struct pal_image* pali, struct image* img) {
     unsigned char newPixel[3], originalPixel[3], index;
     int errorPixel[3];
     if(pali->pal == NULL) {
@@ -166,7 +185,6 @@ atkinson(struct pal_image* pali, struct image* img , int num_norme ) {
 void
 errorPixelCalcul(unsigned char* originalPixel, unsigned char* newPixel, int* errorPixel)
 {
-
     errorPixel[0] = originalPixel[0] - newPixel[0];
     errorPixel[1] = originalPixel[1] - newPixel[1];
     errorPixel[2] = originalPixel[2] - newPixel[2];
@@ -189,7 +207,30 @@ uCharCap(int num)
     return num;
 }
 
-/////////////////////////// scaling
+int
+ordered_pal_image(struct pal_image* pali, const struct image* img) {
+    unsigned char pixel[3];
+    int diff[3]; 
+    for(int i = 0 ; i < pali->height ; i++)
+	{
+	    for(int j = 0 ; j < pali->width ; j++)
+		{
+		    pixel[0] = img->data[i][j * 4 + 0];
+		    pixel[1] = img->data[i][j * 4 + 1];
+		    pixel[2] = img->data[i][j * 4 + 2];
+		    
+		    diff[0] = BAYER_16X16[i%16][j%16];
+		    diff[1] = BAYER_16X16[i%16][j%16];
+		    diff[2] = BAYER_16X16[i%16][j%16];
+		    
+		    errorApplication(pixel, diff, 1/cbrt(pali->pal_len));
+		    pali->data[i][j] = findClosestColorFromPalette(pixel, pali->pal, pali->pal_len); 
+		}
+	}
+    return 1;
+}
+
+/////////////////////////// Scaling
 
 struct image*
 new_scaled_image(double factor, const struct image* img) {

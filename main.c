@@ -12,15 +12,13 @@ main(int argc, char **argv)
     struct image* img;
     struct pal_image* pali;
     int rc;
-    int argp = 0, argd = 0 , argn = 2, args = 1;
-
-    fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1 or 2] [-n number] [-s number]\n", argv[0]);
+    int argp = 0, argd = 0, args = 1, argx = 0;
     
     //lecture des paramètres du main (arc,argv)
     while(1) {
         int opt;
 
-        opt = getopt(argc, argv, "d:p:n:s:"); //"ab::c:" argless a, optarg b, mandatoryarg c
+        opt = getopt(argc, argv, "xd:p:s:"); //"ab::c:" argless a, optarg b, mandatoryarg c
         if(opt < 0)
             break;
 	
@@ -29,17 +27,16 @@ main(int argc, char **argv)
 	    if(optarg != NULL) 	argp = atoi(optarg);
 	    else argp = 0;
 	    break;
-	case 'd':
+	case 'd': // "d" comme "dithering" et "diffusion d'erreur"
 	    if(optarg != NULL) argd = atoi(optarg) ;
 	    else argd = 0 ;
 	    break;
-	case 'n' :
-	    if(optarg != NULL) argn = atoi(optarg) ;
-	    else argn = 2 ;
-	    break;
-	case 's' :
+	case 's' : // "s" comme "scaling"
 	    if(optarg != NULL) args = atoi(optarg);
 	    else args = 1;
+	    break;
+	case 'x': // "x" comme "execution"
+	    argx = 1;
 	    break;
         default:
             fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1 or 2] [-n number]\n", argv[0]);
@@ -89,7 +86,6 @@ main(int argc, char **argv)
 	case 64:
 	    printf("Palette de 64 couleurs : 4-4-4\n");
 	    pal_64(pali);
-	    gen_pal_image(pali, img , argn );
 	    break;
 	case 216:
 	    printf("Palette de 216 couleurs : 6-6-6\n");
@@ -107,20 +103,7 @@ main(int argc, char **argv)
 	    printf("Palette de 256 couleurs : niveaux de gris\n");
 	    pal_256(pali);
 	    break;
-	case 0:
-	    printf("Conversion de l'image en image à palette de couleurs\n"); 
-	    printf("(fonctionne seulement si l'image est constituée de moins de 256 couleurs)\n");
-	    printf("The available palettes are :\n");
-	    printf("Colors :\n");
-	    printf("-p 8\n");
-	    printf("-p 16\n");
-	    printf("-p 64\n");
-	    printf("-p 216\n");
-	    printf("-p 252\n");
-	    printf("Black & white :\n");
-	    printf("-p 2\n");
-	    printf("-p 256\n");
-	    break;
+        case 0:
 	default:
 	    printf("Unavailable palette\n");
 	    printf("The available palettes are :\n");
@@ -139,21 +122,28 @@ main(int argc, char **argv)
     switch(argd) {
     case 0:
 	printf("Conversion en image indexée classique\n");
-	if(gen_pal_image(pali, img , argn ) == -1) {
+	if(naive_pal_image(pali, img) == -1) {
 	    fprintf(stderr, "Conversion error\n");
 	    return 1;
 	}
 	break;
     case 1:
 	printf("Conversion en image indexée + dispersion d'erreur de Floyd-Steinberg\n");
-	if(floydSteinberg(pali, img , argn ) == -1) {
+	if(floydSteinberg_pal_image(pali, img) == -1) {
 	    fprintf(stderr, "Conversion error\n");
 	    return 1;
 	}
 	break;
     case 2:
 	printf("Conversion en image indexée + dispersion d'erreur d'Atkinson\n");
-	if(atkinson(pali, img , argn ) == -1) {
+	if(atkinson_pal_image(pali, img) == -1) {
+	    fprintf(stderr, "Conversion error\n");
+	    return 1;
+	}
+	break;
+    case 3:
+	printf("Conversion en image indexée + tramage ordonné\n");
+	if(ordered_pal_image(pali, img) == -1) {
 	    fprintf(stderr, "Conversion error\n");
 	    return 1;
 	}
@@ -184,23 +174,25 @@ main(int argc, char **argv)
     free_pal_image(pali);
 
     //ouverture automatique de l'image générée
-    if(argv[optind + 1] == NULL) {
-	char cmd[] = "eog img/output.png";
-	int syst = system(cmd);
-	if ( syst != 0 ) {
-	    fprintf( stderr, "Unable to launch command : %s\n", cmd );
+    if(argx == 1) { 
+	if(argv[optind + 1] == NULL) {
+	    char cmd[] = "eog img/output.png";
+	    int syst = system(cmd);
+	    if ( syst != 0 ) {
+		fprintf( stderr, "Unable to launch command : %s\n", cmd );
+	    }
+	    return 1;
 	}
-	return 1;
-    }
-    else {
-	char cmd[strlen(argv[optind + 1]) + 5];
-	strcpy(cmd, "eog ");
-	strcat(cmd, argv[optind + 1]);	
-        int syst = system(cmd);
-	if ( syst != 0 ) {
-	    fprintf( stderr, "Unable to launch command  : %s\n", cmd );
+	else {
+	    char cmd[strlen(argv[optind + 1]) + 5];
+	    strcpy(cmd, "eog ");
+	    strcat(cmd, argv[optind + 1]);	
+	    int syst = system(cmd);
+	    if ( syst != 0 ) {
+		fprintf( stderr, "Unable to launch command  : %s\n", cmd );
+	    }
+	    return 1;
 	}
-	return 1;
     }
 
     return 0;

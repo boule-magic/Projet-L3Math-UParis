@@ -12,7 +12,7 @@ main(int argc, char **argv)
     struct image* img;
     struct pal_image* pali;
     int rc;
-    int argp = 0, argd = 0 , argn = 2, args = 1;
+    int argp = 0, argd = 0 , argn = 2, args = 1 , argP ;
 
     fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1 or 2] [-n number] [-s number]\n", argv[0]);
     
@@ -20,7 +20,7 @@ main(int argc, char **argv)
     while(1) {
         int opt;
 
-        opt = getopt(argc, argv, "d:p:n:s:"); //"ab::c:" argless a, optarg b, mandatoryarg c
+        opt = getopt(argc, argv, "d:p:n:s:P:"); //"ab::c:" argless a, optarg b, mandatoryarg c
         if(opt < 0)
             break;
 	
@@ -38,11 +38,15 @@ main(int argc, char **argv)
 	    else argn = 2 ;
 	    break;
 	case 's' :
-	    if(optarg != NULL) args = atoi(optarg);
-	    else args = 1;
-	    break;
+	  if(optarg != NULL) args = atoi(optarg);
+	  else args = 1;
+	  break;
+	case 'P': // palette dynamique
+	  if(optarg != NULL) argP = atoi(optarg);
+	  else argP = 0 ;
+	  break;
         default:
-            fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1 or 2] [-n number]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1 or 2] [-n number] [-P number]\n", argv[0]);
             return 1;
         }
     }
@@ -135,6 +139,10 @@ main(int argc, char **argv)
 	    printf("-p 256\n");
 	    return 1;
 	}
+    //création de la palette dynamique
+    if ( argP != 0 ){
+      palette_dynamique( pali , img , argP ) ;
+    }    
     ///création de l'image indexée
     switch(argd) {
     case 0:

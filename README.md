@@ -1,6 +1,6 @@
 # Projet-L3Math-UParis
 
-Il s'agit d'un petit programme de compression d'image qui réduit une image PNG en une image PNG à palette de couleur choisi. Pour un meilleur rendu il se sert des algorithmes de diffusion d'erreur de Floyd-Steinberg, d'Atkinson et ordonné.Pour une meilleur compression il peut également réduire la taille de l'image.
+Il s'agit d'un petit programme de compression d'image qui réduit une image PNG en une image PNG à palette de couleur choisi. Pour un meilleur rendu il se sert des algorithmes de diffusion d'erreur de Floyd-Steinberg, d'Atkinson et ordonné. Pour une meilleur compression il peut également réduire la taille de l'image.
 
 ## Compilation
 #### Setup : 

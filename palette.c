@@ -121,9 +121,9 @@ pal_256(struct pal_image* pali) {
 unsigned char
 findClosestColorFromPalette(const unsigned char* originalPixel, const unsigned char* palette, const int pal_len) {
     int minimal = norme(originalPixel, palette), current = 0;
-    unsigned char index = 0 ;
+    unsigned char index = -1;
     for(int k = 0; k < pal_len; k++) {
-	current = norme(originalPixel, &palette[k*3]) ;
+	current = norme(originalPixel, &palette[k*3]);
 	if(current <= minimal) {
 	    index = k;
 	    minimal = current;

@@ -39,13 +39,13 @@ main(int argc, char **argv)
 	    argx = 1;
 	    break;
         default:
-            fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1 or 2] [-n number]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1/2/3] [-n number] [-x]\n", argv[0]);
             return 1;
         }
     }
 
     if(argc != optind + 1 && argc != optind + 2) {
-        fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1 or 2] [-n number]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1/2/3] [-n number] [-x]\n", argv[0]);
         return 1;
     }
     
@@ -70,10 +70,11 @@ main(int argc, char **argv)
     //création de l'image à palette de couleur
     pali = new_pal_image(img); //allocation
     if(pali == NULL) {
-	fprintf(stderr, "Arf pali broken !\n");
+	fprintf(stderr, "pal_image is broken !\n");
         return 1;
     }
-    ///création de la palette de couleur
+
+    //création de la palette de couleur
     switch(argp) {
         case 8:
 	    printf("Palette de 8 couleurs : saturation\n");
@@ -118,6 +119,7 @@ main(int argc, char **argv)
 	    printf("-p 256\n");
 	    return 1;
 	}
+
     ///création de l'image indexée
     switch(argd) {
     case 0:
@@ -180,8 +182,8 @@ main(int argc, char **argv)
 	    int syst = system(cmd);
 	    if ( syst != 0 ) {
 		fprintf( stderr, "Unable to launch command : %s\n", cmd );
+		return 1;
 	    }
-	    return 1;
 	}
 	else {
 	    char cmd[strlen(argv[optind + 1]) + 5];
@@ -190,8 +192,8 @@ main(int argc, char **argv)
 	    int syst = system(cmd);
 	    if ( syst != 0 ) {
 		fprintf( stderr, "Unable to launch command  : %s\n", cmd );
+		return 1;
 	    }
-	    return 1;
 	}
     }
 

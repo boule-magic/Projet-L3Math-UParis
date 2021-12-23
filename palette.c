@@ -139,7 +139,7 @@ norme(const unsigned char* C1, const unsigned char* C2) {
 }
 
 struct nb_couleur {
-  unsigned char ir , iv , ib ;
+  unsigned char ucr , ucv , ucb ;
   int nb ;
 } ;
 
@@ -169,69 +169,71 @@ void free_tree ( struct node *n ) {
   }
   free_tree ( n->left ) ;
   free_tree ( n->right ) ;
+  //free ( n->nc ) ;
   free (n) ;    
 }
 
 // VOIR SI JE PEUX PAS LE FAIRE PLUS COURT
-struct node *insert ( struct nb_couleur *nc , struct node *abr , int n ) { // n=1 : ir ; n=2 : iv ; n=3 : ib , n=-1 : nombre , TJS METTRE n=1 ou -1
+struct node *insert ( struct nb_couleur *nc , struct node *abr , int n ) { // n=1 : ucr ; n=2 : ucv ; n=3 : ucb !!! TJS METTRE n=1 !!!
   if ( n==1 ) { // ROUGE
     if ( abr == NULL ) {
       return mknode( nc , NULL , NULL ) ;
     }
-    if ( nc->ir < abr->nc->ir ) {
+    if ( nc->ucr < abr->nc->ucr ) {
       if ( abr->left == NULL ) {
 	abr->left = mknode( nc , NULL , NULL ) ;
       } else {
 	insert ( nc , abr->left , 1 ) ;
       }
-    } else if ( nc->ir > abr->nc->ir ) {
+    } else if ( nc->ucr > abr->nc->ucr ) {
       if ( abr->right == NULL ) {
 	abr->right = mknode( nc , NULL , NULL ) ;
       } else {
 	insert ( nc , abr->right , 1 ) ;
       }
-    } else if ( nc->ir == abr->nc->ir ) {
+    } else if ( nc->ucr == abr->nc->ucr ) {
       insert ( nc , abr , 2 ) ; // REGARDE LE VERT
     }
   } else if ( n==2 ) { // VERT
     if ( abr == NULL ) {
       return mknode( nc , NULL , NULL ) ;
     }
-    if ( nc->iv < abr->nc->iv ) {
+    if ( nc->ucv < abr->nc->ucv ) {
       if ( abr->left == NULL ) {
 	abr->left = mknode( nc , NULL , NULL ) ;
       } else {
 	insert ( nc , abr->left , 2 ) ;
       }
-    } else if ( nc->iv > abr->nc->iv ) {
+    } else if ( nc->ucv > abr->nc->ucv ) {
       if ( abr->right == NULL ) {
 	abr->right = mknode( nc , NULL , NULL ) ;
       } else {
 	insert ( nc , abr->right , 2 ) ;
       }
-    } else if ( nc->iv == abr->nc->iv ) {
+    } else if ( nc->ucv == abr->nc->ucv ) {
       insert ( nc , abr , 3 ) ; // REGARDE LE BLEU
     }
   } else if ( n==3 ) { // BLEU
     if ( abr == NULL ) {
       return mknode( nc , NULL , NULL ) ;
     }
-    if ( nc->ib < abr->nc->ib ) {
+    if ( nc->ucb < abr->nc->ucb ) {
       if ( abr->left == NULL ) {
 	abr->left = mknode( nc , NULL , NULL ) ;
       } else {
 	insert ( nc , abr->left , 3 ) ;
       }
-    } else if ( nc->ib > abr->nc->ib ) {
+    } else if ( nc->ucb > abr->nc->ucb ) {
       if ( abr->right == NULL ) {
 	abr->right = mknode( nc , NULL , NULL ) ;
       } else {
 	insert ( nc , abr->right , 3 ) ;
       }
-    } else if ( nc->ib == abr->nc->ib ) {
+    } else if ( nc->ucb == abr->nc->ucb ) {
       abr->nc->nb++ ; // MODIFIE LE NOMBRE
+      free(nc);
     }
-  } else if ( n==-1 ) {
+  }/* else if ( n==-1 ) {       NE SERT PLUS A RIEN
     if ( abr == NULL ) {
       return mknode( nc , NULL , NULL ) ;
     }
@@ -248,7 +250,7 @@ struct node *insert ( struct nb_couleur *nc , struct node *abr , int n ) { // n=
 	insert ( nc , abr->right , -1 ) ;
       }
     }
-  }
+    }*/
   return abr ;
 }
 
@@ -278,7 +280,7 @@ int snoc ( struct buffer *b , struct nb_couleur *c ) {
   } else {
     b->c[b->len] = c ;
     b->len++ ;
-    //printf("len=%d\nnb=%d\nr=%c\nv=%c\nb=%c\n", b->len, c->nb , c->ir, c->iv, c->ib) ; // SORT RIEN APRES LE R V ET B
+    //printf("len=%d\nnb=%d\nr=%c\nv=%c\nb=%c\n", b->len, c->nb , c->ucr, c->ucv, c->ucb) ; // SORT RIEN APRES LE R V ET B
     return 1 ;
   }
 }
@@ -316,39 +318,33 @@ void palette_dynamique ( struct pal_image *final , struct image *initial , int n
   final->pal_len = n ;
   // ARBRE COULEUR
   struct nb_couleur *nc = init_cl () ;
-  nc->ir = initial->data[0][0] ;
-  nc->iv = initial->data[0][1] ;
-  nc->ib = initial->data[0][2] ;
+  nc->ucr = initial->data[0][0] ;
+  nc->ucv = initial->data[0][1] ;
+  nc->ucb = initial->data[0][2] ;
   struct node *abr = mknode ( nc , NULL , NULL ) ;
-  //printf("ir=%c\niv=%c\nib=%c\n\n fin\n\n", nc->ir , nc->iv , nc->ib);
   for(int i = 0 ; i < initial->height ; i++) {
     for(int j = 0 ; j < initial->width ; j++) {
       if ( i!=0 && j!=0 ) {
 	struct nb_couleur *nc2 = init_cl () ;
-	nc2->ir = initial->data[i][ j*4 ] ;
-	nc2->iv = initial->data[i][ j*4 + 1 ] ;
-	nc2->ib = initial->data[i][ j*4 + 2 ] ;
-	/*	if ( i==j ) {
-		printf("ir=%c\niv=%c\nib=%c\n\n", nc2->ir , nc2->iv , nc2->ib);
-		}*/
+	nc2->ucr = initial->data[i][ j*4 ] ;
+	nc2->ucv = initial->data[i][ j*4 + 1 ] ;
+	nc2->ucb = initial->data[i][ j*4 + 2 ] ;
 	insert ( nc2 , abr , 1 ) ;
       }
     }
   }
-  //printf("1ere boucle finie\n");
-  // NOMBRE
-  struct buffer *tab = new_buffer ( n*2 ) ;
-  //printf("test\n"); // JUSQU'ICI, CA SORT
-  recup_infix_max ( abr , tab , n ) ; // PROBLEME ICIIIIII
-  //printf("test2\n");
+  // NOMBRE                       A PARTIR D'ICI, LES FREE SONT BONS, PLUS QUE 12 A FAIRE ET NE DEPEND PAS DU NB DE COULEURS DEMANDEES
+  struct buffer *tab = new_buffer ( n*2 ) ; 
+  recup_infix_max ( abr , tab , n ) ; 
   // IMAGE FINALE
   for ( int i = 0 ; i < tab->len ; i++ ) {
-    final->pal[ i*3 ] = tab->c[i]->ir ;
-    final->pal[ i*3 + 1 ] = tab->c[i]->iv ;
-    final->pal[ i*3 +2 ] = tab->c[i]->ib ;
-    printf("r=%d\n" ,final->pal[ i*3]) ;
+    final->pal[ i*3 ] = tab->c[i]->ucr ;
+    final->pal[ i*3 + 1 ] = tab->c[i]->ucv ;
+    final->pal[ i*3 +2 ] = tab->c[i]->ucb ;
+    printf("%d:\nr=%d\n", i ,final->pal[ i*3]) ;
     printf("v=%d\n" ,final->pal[ i*3 + 1 ]) ;
-    printf("b=%d\n\n" ,final->pal[ i*3 +2 ]) ;
+    printf("b=%d\n" ,final->pal[ i*3 +2 ]) ;
+    printf("nb=%d\n\n" , tab->c[i]->nb);
   }
   destroy_buffer ( tab ) ;
 }

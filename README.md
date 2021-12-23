@@ -5,16 +5,24 @@ Il s'agit d'un petit programme de compression d'image qui réduit une image PNG 
 ## Compilation
 #### Setup : 
 ```
-chmod +x ./compile
+sudo apt install gcc make
 ```
-#### Compile : 
+#### Compiler : 
 ```
-./compile
+make
+```
+ou
+```
+make compress
+```
+## Tester
+```
+make test
 ```
 ## Exécution par défaut (équivalent) : 
 ```
-./a.out img/taric.png
-./a.out img/taric.png img/output.png
+./compress img/taric.png
+./compress img/taric.png img/output.png
 ```
 ## Options :
  * p : Choix de la palette de couleurs
@@ -36,7 +44,7 @@ chmod +x ./compile
   * 3 : Ordonnée
 #### Exemple d'utilisation d'options :
 ```
-./a.out img/taric.png -s 2 -p 252 -d 1 -x
+./a.out img/taric.png -s 2 -p 252 -d 2 -x
 ```
 ## Convertir des .jpg en .png (writergba)
 #### Le rendre exécutable :
@@ -54,9 +62,9 @@ sudo apt install valgrind
 ```
 #### Compilation (valgrind) : 
 ```
-gcc -Wall main.c conversion.c palette.c pngio.c -lpng -lm -g
+make debug
 ```
 #### Exécution (valgrind) : 
 ```
-valgrind ./a.out img/taric.png
+valgrind ./compress_debug img/taric.png
 ```

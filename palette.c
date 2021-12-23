@@ -169,7 +169,7 @@ void free_tree ( struct node *n ) {
   }
   free_tree ( n->left ) ;
   free_tree ( n->right ) ;
-  //free ( n->nc ) ;
+  //free ( n->nc ) ; // PROBLEME VALGRIND ICI MAIS DONNE NB FREE CORECT
   free (n) ;    
 }
 
@@ -231,7 +231,7 @@ struct node *insert ( struct nb_couleur *nc , struct node *abr , int n ) { // n=
       }
     } else if ( nc->ucb == abr->nc->ucb ) {
       abr->nc->nb++ ; // MODIFIE LE NOMBRE
-      free(nc);
+      //free(nc);
     }
   }/* else if ( n==-1 ) {       NE SERT PLUS A RIEN
     if ( abr == NULL ) {
@@ -333,9 +333,10 @@ void palette_dynamique ( struct pal_image *final , struct image *initial , int n
       }
     }
   }
-  // NOMBRE                       A PARTIR D'ICI, LES FREE SONT BONS, PLUS QUE 12 A FAIRE ET NE DEPEND PAS DU NB DE COULEURS DEMANDEES
+  // NOMBRE                       A PARTIR D'ICI, LES FREE SONT BONS, PLUS QUE 12 A FAIRE ET NE DEPEND PAS DU NB DE COULEURS DEMANDEES / VAIRE CELON L'IMAGE
   struct buffer *tab = new_buffer ( n*2 ) ; 
-  recup_infix_max ( abr , tab , n ) ; 
+  recup_infix_max ( abr , tab , n ) ;
+  free_tree(abr) ;
   // IMAGE FINALE
   for ( int i = 0 ; i < tab->len ; i++ ) {
     final->pal[ i*3 ] = tab->c[i]->ucr ;

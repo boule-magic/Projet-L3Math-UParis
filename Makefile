@@ -1,5 +1,5 @@
-IMG=img/taric.png
-EXEC=compresspng
+IMG=img/taric.png # Image source
+EXEC=compresspng  # Le nom du programme
 
 all: $(EXEC)
 

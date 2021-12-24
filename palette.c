@@ -319,18 +319,21 @@ void palette_dynamique ( struct pal_image *final , struct image *initial , int n
   nc->ucr = initial->data[0][0] ;
   nc->ucv = initial->data[0][1] ;
   nc->ucb = initial->data[0][2] ;
+  int k=1 ;
   struct node *abr = mknode ( nc , NULL , NULL ) ;
   for(int i = 0 ; i < initial->height ; i++) {
     for(int j = 0 ; j < initial->width ; j++) {
-      if ( i!=0 && j!=0 ) {
+      if ( i!=0 || j!=0 ) {
 	struct nb_couleur *nc2 = init_cl () ;
 	nc2->ucr = initial->data[i][ j*4 ] ;
 	nc2->ucv = initial->data[i][ j*4 + 1 ] ;
 	nc2->ucb = initial->data[i][ j*4 + 2 ] ;
 	insert ( nc2 , abr , 1 ) ;
-      }
+	k++;
+	}
     }
   }
+  printf("taille = %d\n",k);
   // NOMBRE
   //A PARTIR D'ICI, LES FREE SONT BONS, PLUS QUE 12 A FAIRE ET NE DEPEND PAS DU NB DE COULEURS DEMANDEES / VARIE CELON L'IMAGE
   struct buffer *tab = new_buffer ( n*2 ) ; 

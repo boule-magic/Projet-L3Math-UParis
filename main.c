@@ -5,6 +5,7 @@
 
 #include "palette.h"
 #include "conversion.h"
+#include "scaling.h"
 
 int
 main(int argc, char **argv)
@@ -12,13 +13,13 @@ main(int argc, char **argv)
     struct image* img;
     struct pal_image* pali;
     int rc;
-    int argp = 0, argd = 0, args = 1, argx = 0;
+    int argp = 0, argd = 0, argx = 0, argw = 0, argh = 0;
     
     //lecture des paramètres du main (arc,argv)
     while(1) {
         int opt;
 
-        opt = getopt(argc, argv, "xd:p:s:"); //"ab::c:" argless a, optarg b, mandatoryarg c
+        opt = getopt(argc, argv, "xd:p:w:h:"); //"ab::c:" argless a, optarg b, mandatoryarg c
         if(opt < 0)
             break;
 	
@@ -31,21 +32,25 @@ main(int argc, char **argv)
 	    if(optarg != NULL) argd = atoi(optarg) ;
 	    else argd = 0 ;
 	    break;
-	case 's' : // "s" comme "scaling"
-	    if(optarg != NULL) args = atoi(optarg);
-	    else args = 1;
+	case 'h' : // "h" comme "height"
+	    if(optarg != NULL) argh = atoi(optarg);
+	    else argh = 0;
+	    break;
+	case 'w' : // "w" comme "width"
+	    if(optarg != NULL) argw = atoi(optarg);
+	    else argw = 0;
 	    break;
 	case 'x': // "x" comme "execution"
 	    argx = 1;
 	    break;
         default:
-            fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1/2/3] [-n number] [-x]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1/2/3] [-n number] [-x] [-w width] [-h height] [-s scaling_factor]\n", argv[0]);
             return 1;
         }
     }
 
     if(argc != optind + 1 && argc != optind + 2) {
-        fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1/2/3] [-n number] [-x]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1/2/3] [-n number] [-x] [-w width] [-h height] [-s scaling_factor]\n", argv[0]);
         return 1;
     }
     
@@ -57,8 +62,8 @@ main(int argc, char **argv)
     }
 
     //redimensionnement
-    if(args > 1) {
-	struct image* smallimg = image_scaling(args, img);
+    if(argh > 0 || argw > 0) {
+	struct image* smallimg = image_scaling(argh, argw, img);
 	if(smallimg == NULL) {
 	    fprintf(stderr, "Couldn't scale\n");
 	} else {

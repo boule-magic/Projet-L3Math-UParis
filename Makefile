@@ -1,7 +1,7 @@
-IMG=img/taric.png # Image source
+IMG=img/taric.png # Image source pour les tests
 EXEC=compresspng  # Le nom du programme
 
-all: $(EXEC)
+all: release
 
 release: main.c conversion.c palette.c scaling.c pngio.c
 	gcc -Wall main.c conversion.c palette.c scaling.c pngio.c -lpng -lm -O2 -o $(EXEC)

@@ -6,9 +6,8 @@
 #include "palette.h"
 #include "conversion.h"
 
-int max_abs (int a , int b ) ;
-int norme_a_la_puissance ( int num_norme , const struct image *initial , const struct pal_image *final , int k_pali , int i_data , int j_data ) ;
-struct image* new_scaled_image(double factor, const struct image* img);
+//int max_abs (int a , int b ) ;
+//int norme_a_la_puissance ( int num_norme , const struct image *initial , const struct pal_image *final , int k_pali , int i_data , int j_data ) ;
 void errorPixelCalcul(unsigned char* originalPixel, unsigned char* newPixel, int* errorPixel);
 void errorApplication(unsigned char* pixel, int* errorPixel, double coef);
 unsigned char uCharCap(int num);
@@ -113,8 +112,6 @@ naive_pal_image(struct pal_image* pali, const struct image* img) {
     }
     return 1;
 }
-
-////////////////////////////// Dithering
 
 int
 floydSteinberg_pal_image(struct pal_image* pali, struct image* img) {
@@ -230,105 +227,45 @@ ordered_pal_image(struct pal_image* pali, const struct image* img) {
     return 1;
 }
 
-/////////////////////////// Scaling
 
-struct image*
-new_scaled_image(double factor, const struct image* img) {
-    struct image* smallimg = calloc(1, sizeof(struct pal_image));
-    if(smallimg == NULL) {
-        fprintf(stderr, "Couldn't allocate pal_image.\n");
-        return NULL;
-    }
-    smallimg->width = img->width/factor;
-    smallimg->height = img->height/factor;
-    smallimg->data = malloc(smallimg->height * sizeof(unsigned char*));
-    if(smallimg->data == NULL) {
-        fprintf(stderr, "Couldn't allocate data pal.\n");
-	free(smallimg);
-        return NULL;
-    }
-    for(int i = 0; i < smallimg->height; i++) {
-        smallimg->data[i] = malloc(4*smallimg->width);
-        if(smallimg->data[i] == NULL) {
-            fprintf(stderr, "Couldn't allocate data pal.\n");
-            for ( int k = 0 ; k < i ; k++ ) {
-            	free( smallimg->data[k] ) ;
-            }
-	    free(smallimg->data);
-	    free(smallimg);
-            return NULL;
-        }
-    }
-    return smallimg;
-}
+/* int max_abs (int a , int b ) { */
+/*   if ( a < 0 ) { */
+/*     a = -a ; */
+/*   } */
+/*   if ( b < 0 ) { */
+/*     b = -b ; */
+/*   } */
+/*   if ( a > b ) { */
+/*     return a ; */
+/*   } else { */
+/*     return b ; */
+/*   } */
+/* } */
 
-struct image*
-image_scaling(double factor, const struct image* img) {
-    struct image* smallimg = new_scaled_image(factor, img);
-    if(smallimg == NULL) {
-	return NULL;
-    }
-    for(int i = 0 ; i < smallimg->height ; i++) {
-	for(int j = 0 ; j < smallimg->width ; j++) {
-	    int fi = i*factor;
-	    int fj = j*factor;
-	    /* double ffi = i*factor - fi; */
-	    /* double ffj = j*factor - fj; */
-	    /* if(fi < img->height + 1 && fj < img->width + 1) { // bilinear interpolation (ou presque) crado */
-	    /* 	smallimg->data[i][j*4  ] =  (1-ffi)*img->data[fi][fj*4  ] + (ffi)*img->data[fi][fj*4+4  ]; */
-	    /* 	smallimg->data[i][j*4+1] =  (1-ffi)*img->data[fi][fj*4+1] + (ffi)*img->data[fi][fj*4+4+1]; */
-	    /* 	smallimg->data[i][j*4+2] =  (1-ffi)*img->data[fi][fj*4+2] + (ffi)*img->data[fi][fj*4+4+2]; */
-	    /* 	smallimg->data[i][j*4+3] =  (1-ffi)*img->data[fi][fj*4+3] + (ffi)*img->data[fi][fj*4+4+3]; */
-	    /* } else { */
-		smallimg->data[i][j*4  ] =  img->data[fi][fj*4  ];
-		smallimg->data[i][j*4+1] =  img->data[fi][fj*4+1];
-		smallimg->data[i][j*4+2] =  img->data[fi][fj*4+2];
-		smallimg->data[i][j*4+3] =  img->data[fi][fj*4+3];
-	    /* } */
-	}
-    }
-    return smallimg;
-}
+/* /\* 0 pour la norme infinie *\/ */
 
-
-int max_abs (int a , int b ) {
-  if ( a < 0 ) {
-    a = -a ;
-  }
-  if ( b < 0 ) {
-    b = -b ;
-  }
-  if ( a > b ) {
-    return a ;
-  } else {
-    return b ;
-  }
-}
-
-/* 0 pour la norme infinie */
-
-int norme_a_la_puissance ( int num_norme , const struct image *initial , const struct pal_image *final , int k_pali , int i_data , int j_data ) {
-    int somme = 0 ;
-    if ( k_pali < final->pal_len && i_data < initial->height && j_data < initial->width && k_pali >= 0 && i_data >= 0 && j_data >= 0 ) {
-	if ( num_norme != 0 ) {
-	    for ( int rgb = 0 ; rgb < 3 ; rgb++ ) {
-		int produit = 1 ;
-		for ( int p = 0 ; p < num_norme ; p++ ) {
-		    produit *= final->pal[k_pali*3+rgb] - initial->data[i_data][j_data*4+rgb] ;
-		}
-		if ( produit < 0 ) {
-		    produit = - produit ;
-		}
-		somme += produit ;
-	    }
-	} else {
-	    return max_abs( max_abs( final->pal[k_pali*3] - initial->data[i_data][j_data*4] , final->pal[k_pali*3+1] - initial->data[i_data][j_data*4+1] ) , final->pal[k_pali*3+2] - initial->data[i_data][j_data*4+2] ) ;
-	}
-    } else {
-	return -1 ;
-    }
-    return somme ;
-}
+/* int norme_a_la_puissance ( int num_norme , const struct image *initial , const struct pal_image *final , int k_pali , int i_data , int j_data ) { */
+/*     int somme = 0 ; */
+/*     if ( k_pali < final->pal_len && i_data < initial->height && j_data < initial->width && k_pali >= 0 && i_data >= 0 && j_data >= 0 ) { */
+/* 	if ( num_norme != 0 ) { */
+/* 	    for ( int rgb = 0 ; rgb < 3 ; rgb++ ) { */
+/* 		int produit = 1 ; */
+/* 		for ( int p = 0 ; p < num_norme ; p++ ) { */
+/* 		    produit *= final->pal[k_pali*3+rgb] - initial->data[i_data][j_data*4+rgb] ; */
+/* 		} */
+/* 		if ( produit < 0 ) { */
+/* 		    produit = - produit ; */
+/* 		} */
+/* 		somme += produit ; */
+/* 	    } */
+/* 	} else { */
+/* 	    return max_abs( max_abs( final->pal[k_pali*3] - initial->data[i_data][j_data*4] , final->pal[k_pali*3+1] - initial->data[i_data][j_data*4+1] ) , final->pal[k_pali*3+2] - initial->data[i_data][j_data*4+2] ) ; */
+/* 	} */
+/*     } else { */
+/* 	return -1 ; */
+/*     } */
+/*     return somme ; */
+/* } */
 
 
 

@@ -23,6 +23,37 @@ free_pal_image(struct pal_image *image)
     free(image);
 }
 
+struct pal_image*
+new_pal_image(const struct image* img) {
+    struct pal_image* pali = calloc(1, sizeof(struct pal_image));
+    if(pali == NULL) {
+        fprintf(stderr, "Couldn't allocate pal_image.\n");
+        return NULL;
+    }
+    pali->width = img->width;
+    pali->height = img->height;
+    pali->data = malloc(img->height * sizeof(unsigned char*));
+    if(pali->data == NULL) {
+        fprintf(stderr, "Couldn't allocate data pal.\n");
+	free(pali);
+        return NULL;
+    }
+    pali->pal_len = -1; // pal non alloué
+    for(int i = 0; i < img->height; i++) {
+        pali->data[i] = malloc(img->width);
+        if(pali->data[i] == NULL) {
+            fprintf(stderr, "Couldn't allocate data pal.\n");
+            for ( int k = 0 ; k < i ; k++ ) {
+            	free( pali->data[k] ) ;
+            }
+	    free(pali->data);
+	    free(pali);
+            return NULL;
+        }
+    }
+    return pali;
+}
+
 
 struct image *
 read_png(char *filename) {

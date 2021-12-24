@@ -4,15 +4,15 @@
 #include <math.h>
 
 #include "palette.h"
-#include "conversion.h"
+#include "dithering.h"
 
 //int max_abs (int a , int b ) ;
 //int norme_a_la_puissance ( int num_norme , const struct image *initial , const struct pal_image *final , int k_pali , int i_data , int j_data ) ;
 void errorPixelCalcul(unsigned char* originalPixel, unsigned char* newPixel, int* errorPixel);
 void errorApplication(unsigned char* pixel, int* errorPixel, double coef);
 unsigned char uCharCap(int num);
-
-const	int BAYER_4X4[4][4]  =  {        //	4x4 Bayer Dithering Matrix. Color levels: 17
+const	double BAYER_2X2[2][2]  =  {{-0.25, 0.25},{0.5, 0}};        //	2x2 Bayer Dithering Matrix. Color levels: 5 ou 4 ? Pré-calculée !!
+const	int BAYER_4X4[4][4]  =  {                       //	4x4 Bayer Dithering Matrix. Color levels: 17
     {	 15, 195,  60, 240	},
     {	135,  75, 180, 120	},
     {	 45, 225,  30, 210	},
@@ -29,7 +29,6 @@ const	int BAYER_8X8[8][8]		=	{	//	8x8 Bayer Dithering Matrix. Color levels: 65
     {	 60, 188,  28, 156,  52, 180,  20, 148	},
     {	252, 124, 220,  92, 244, 116, 212,  84	}
 };
-
 const	int	BAYER_16X16[16][16]	=	{	//	16x16 Bayer Dithering Matrix.  Color levels: 256
     {	  0, 191,  48, 239,  12, 203,  60, 251,   3, 194,  51, 242,  15, 206,  63, 254	}, 
     {	127,  64, 175, 112, 139,  76, 187, 124, 130,  67, 178, 115, 142,  79, 190, 127	},
@@ -48,38 +47,6 @@ const	int	BAYER_16X16[16][16]	=	{	//	16x16 Bayer Dithering Matrix.  Color levels
     {	 42, 233,  26, 217,  38, 229,  22, 213,  41, 232,  25, 216,  37, 228,  21, 212	},
     {	169, 106, 153,  90, 165, 102, 149,  86, 168, 105, 152,  89, 164, 101, 148,  85	}
 };
-
-struct pal_image*
-new_pal_image(const struct image* img) {
-    struct pal_image* pali = calloc(1, sizeof(struct pal_image));
-    if(pali == NULL) {
-        fprintf(stderr, "Couldn't allocate pal_image.\n");
-        return NULL;
-    }
-    pali->width = img->width;
-    pali->height = img->height;
-    pali->data = malloc(img->height * sizeof(unsigned char*));
-    if(pali->data == NULL) {
-        fprintf(stderr, "Couldn't allocate data pal.\n");
-	free(pali);
-        return NULL;
-    }
-    //pali->pal = NULL;
-    pali->pal_len = -1;
-    for(int i = 0; i < img->height; i++) {
-        pali->data[i] = malloc(img->width);
-        if(pali->data[i] == NULL) {
-            fprintf(stderr, "Couldn't allocate data pal.\n");
-            for ( int k = 0 ; k < i ; k++ ) {
-            	free( pali->data[k] ) ;
-            }
-	    free(pali->data);
-	    free(pali);
-            return NULL;
-        }
-    }
-    return pali;
-}
 
 int
 naive_pal_image(struct pal_image* pali, const struct image* img) {
@@ -145,6 +112,8 @@ floydSteinberg_pal_image(struct pal_image* pali, struct image* img) {
     return 1;
 }
 
+// -d 2
+
 int
 atkinson_pal_image(struct pal_image* pali, struct image* img) {
     unsigned char newPixel[3], originalPixel[3], index;
@@ -179,6 +148,31 @@ atkinson_pal_image(struct pal_image* pali, struct image* img) {
     return 1;
 }
 
+
+int
+ordered_pal_image(struct pal_image* pali, const struct image* img) {
+    unsigned char pixel[3];
+    int  diff[3]; 
+    for(int i = 0 ; i < pali->height ; i++)
+	{
+	    for(int j = 0 ; j < pali->width ; j++)
+		{
+		    pixel[0] = img->data[i][j * 4 + 0];
+		    pixel[1] = img->data[i][j * 4 + 1];
+		    pixel[2] = img->data[i][j * 4 + 2];
+		    
+		    diff[0] = BAYER_16X16[i%16][j%16];
+		    diff[1] = BAYER_16X16[i%16][j%16];
+		    diff[2] = BAYER_16X16[i%16][j%16];
+		    
+		    errorApplication(pixel, diff, 1.0/cbrt(pali->pal_len));
+		    
+		    pali->data[i][j] = findClosestColorFromPalette(pixel, pali->pal, pali->pal_len); 
+		}
+	}
+    return 1;
+}
+
 void
 errorPixelCalcul(unsigned char* originalPixel, unsigned char* newPixel, int* errorPixel)
 {
@@ -202,29 +196,6 @@ uCharCap(int num)
     if (num < 0) return 0;
 
     return num;
-}
-
-int
-ordered_pal_image(struct pal_image* pali, const struct image* img) {
-    unsigned char pixel[3];
-    int diff[3]; 
-    for(int i = 0 ; i < pali->height ; i++)
-	{
-	    for(int j = 0 ; j < pali->width ; j++)
-		{
-		    pixel[0] = img->data[i][j * 4 + 0];
-		    pixel[1] = img->data[i][j * 4 + 1];
-		    pixel[2] = img->data[i][j * 4 + 2];
-		    
-		    diff[0] = BAYER_16X16[i%16][j%16];
-		    diff[1] = BAYER_16X16[i%16][j%16];
-		    diff[2] = BAYER_16X16[i%16][j%16];
-		    
-		    errorApplication(pixel, diff, 1/cbrt(pali->pal_len));
-		    pali->data[i][j] = findClosestColorFromPalette(pixel, pali->pal, pali->pal_len); 
-		}
-	}
-    return 1;
 }
 
 

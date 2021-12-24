@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "palette.h"
-#include "conversion.h"
+#include "dithering.h"
 #include "scaling.h"
 
 int
@@ -110,8 +110,8 @@ main(int argc, char **argv)
 	    pal_256(pali);
 	    break;
         case 0:
-	default:
 	    printf("Unavailable palette\n");
+	default:
 	    printf("The available palettes are :\n");
 	    printf("Colors :\n");
 	    printf("-p 8\n");

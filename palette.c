@@ -138,6 +138,11 @@ norme(const unsigned char* C1, const unsigned char* C2) {
     return (C1[0]-C2[0])*(C1[0]-C2[0]) + (C1[1]-C2[1])*(C1[1]-C2[1]) + (C1[2]-C2[2])*(C1[2]-C2[2]);
 }
 
+
+// PROBLEME AU NIVEAU DES COULEURS, NE DEPEND NI DU R, V OU B / DEPEND DE LA PLACE DE LA COULEUR DANS L'IMAGE (REGARDER LES BOUCLES) => NE PREND PAS CERTAINES COULEURS, ET M*RDE UN PEU AU NIVEAU DES PLUS UTILISEES
+// PROBLEME VALGRIND
+
+
 struct nb_couleur {
   unsigned char ucr , ucv , ucb ;
   int nb ;
@@ -169,7 +174,7 @@ void free_tree ( struct node *n ) {
   }
   free_tree ( n->left ) ;
   free_tree ( n->right ) ;
-  //free ( n->nc ) ; // PROBLEME VALGRIND ICI MAIS DONNE NB FREE CORECT
+  free ( n->nc ) ; // PROBLEME FREE RESOLU , PB VALGRIND MAINTENANT
   free (n) ;    
 }
 
@@ -231,7 +236,7 @@ struct node *insert ( struct nb_couleur *nc , struct node *abr , int n ) { // n=
       }
     } else if ( nc->ucb == abr->nc->ucb ) {
       abr->nc->nb++ ; // MODIFIE LE NOMBRE
-      //free(nc);
+      free(nc);
     }
   }/* else if ( n==-1 ) {       NE SERT PLUS A RIEN
     if ( abr == NULL ) {
@@ -275,37 +280,30 @@ void destroy_buffer ( struct buffer *b ) {
 }
 
 int snoc ( struct buffer *b , struct nb_couleur *c ) {
-  if ( b->len == b->cap ) { // PB ICI => PAS UN PB PEUT ETRE
+  if ( b->len == b->cap ) {
     return -1 ;
   } else {
     b->c[b->len] = c ;
     b->len++ ;
-    //printf("len=%d\nnb=%d\nr=%c\nv=%c\nb=%c\n", b->len, c->nb , c->ucr, c->ucv, c->ucb) ; // SORT RIEN APRES LE R V ET B
     return 1 ;
   }
 }
 
 void compare ( struct nb_couleur *nc , struct buffer *b , int n ) {
-  if ( b->len < n ) { // FONCTIONNE
+  if ( b->len < n ) {
     snoc ( b , nc ) ;
-  } else {  // APRES IL FAUT COMPARER LES NC RESSTANTES
+  } else {  // COMPARE LES NC RESSTANTES
     for ( int i = 0 ; i < n ; i++ ) {
-      //printf("boucle for\n");
-      //printf("b->c[%d]->nb=%d", i,  b->c[i]->nb); // LE PROBLEME EST : b->c[%d]->nb
       if ( nc->nb > b->c[i]->nb ) { 
-	//printf("test");
 	b->c[i] = nc ;
-	//printf("i=%d\n", i );
 	break ;
       }
     }
   }
 }
-  
-// LOGIQUEMENT FONCTIONNE / POURTANT PB LIGNE 334
+
 void recup_infix_max ( struct node *abr , struct buffer *b , int n ) {
     if ( abr == NULL ) {
-      //printf("0\n");
 	return ;
     }
     recup_infix_max ( abr->left , b , n ) ;
@@ -333,7 +331,8 @@ void palette_dynamique ( struct pal_image *final , struct image *initial , int n
       }
     }
   }
-  // NOMBRE                       A PARTIR D'ICI, LES FREE SONT BONS, PLUS QUE 12 A FAIRE ET NE DEPEND PAS DU NB DE COULEURS DEMANDEES / VAIRE CELON L'IMAGE
+  // NOMBRE
+  //A PARTIR D'ICI, LES FREE SONT BONS, PLUS QUE 12 A FAIRE ET NE DEPEND PAS DU NB DE COULEURS DEMANDEES / VARIE CELON L'IMAGE
   struct buffer *tab = new_buffer ( n*2 ) ; 
   recup_infix_max ( abr , tab , n ) ;
   free_tree(abr) ;

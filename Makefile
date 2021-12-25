@@ -1,4 +1,4 @@
-IMG=img/taric.png # Image source pour les tests
+IMG=img/aardvark.png # Image source pour les tests
 EXEC=compresspng  # Le nom du programme
 
 all: release
@@ -22,6 +22,8 @@ dithering: release $(IMG)
 scaling: release $(IMG) 
 	./$(EXEC) $(IMG) test_252_floyd_w100.png -p 252 -d 1 -w 100
 	./$(EXEC) $(IMG) test_252_floyd_h100.png -p 252 -d 1 -h 100
+	./$(EXEC) $(IMG) test_252_floyd_w500.png -p 252 -d 1 -w 500
+	./$(EXEC) $(IMG) test_252_floyd_h500.png -p 252 -d 1 -h 500
 	./$(EXEC) $(IMG) test_252_floyd_w1000.png -p 252 -d 1 -w 1000
 	./$(EXEC) $(IMG) test_252_floyd_h1000.png -p 252 -d 1 -h 1000
 	./$(EXEC) $(IMG) test_252_floyd_w2000.png -p 252 -d 1 -w 2000

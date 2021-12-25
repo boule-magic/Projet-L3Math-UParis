@@ -1,5 +1,5 @@
 IMG=img/aardvark.png # Image source pour les tests
-EXEC=compresspng  # Le nom du programme
+EXEC=compresspng     # Le nom du programme
 
 all: release
 

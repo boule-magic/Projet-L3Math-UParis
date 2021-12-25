@@ -52,7 +52,6 @@ image_scaling(int height, int width, const struct image* img) {
 	return NULL;
     }
     
-    printf("factor = %.2f\n", factor);
     struct image* scaledimg = new_scaled_image(factor, img);
     if(scaledimg == NULL) {
 	return NULL;
@@ -64,7 +63,7 @@ image_scaling(int height, int width, const struct image* img) {
 	    double i_err = i/factor - fi;
 	    double j_err = j/factor - fj;
 	    
-	    if(fi + 1 < img->height && fj + 1 < img->width) { // bilinear interpolation (ou presque)
+	    if(fi + 1 < img->height && fj + 1 < img->width) { // bilinear interpolation
 		scaledimg->data[i][j*4  ] =  (1-j_err)*img->data[fi][fj*4]       + (j_err)*img->data[fi  ][fj*4+4  ];
 		scaledimg->data[i][j*4  ] =  (1-i_err)*scaledimg->data[i][j*4]   + (i_err)*img->data[fi+1][fj*4    ];
 		scaledimg->data[i][j*4+1] =  (1-j_err)*img->data[fi][fj*4+1]     + (j_err)*img->data[fi  ][fj*4+4+1];
@@ -73,12 +72,7 @@ image_scaling(int height, int width, const struct image* img) {
 		scaledimg->data[i][j*4+2] =  (1-i_err)*scaledimg->data[i][j*4+2] + (i_err)*img->data[fi+1][fj*4+2  ];
 		scaledimg->data[i][j*4+3] =  (1-j_err)*img->data[fi][fj*4+3]     + (j_err)*img->data[fi  ][fj*4+4+3];
 		scaledimg->data[i][j*4+3] =  (1-i_err)*scaledimg->data[i][j*4+3] + (i_err)*img->data[fi+1][fj*4+3  ];
-	    } /* else { */
-	    /* 	scaledimg->data[i][j*4  ] =  img->data[fi][fj*4  ]; */
-	    /* 	scaledimg->data[i][j*4+1] =  img->data[fi][fj*4+1]; */
-	    /* 	scaledimg->data[i][j*4+2] =  img->data[fi][fj*4+2]; */
-	    /* 	scaledimg->data[i][j*4+3] =  img->data[fi][fj*4+3]; */
-	    /* } */
+	    }
 	}
     }
     return scaledimg;

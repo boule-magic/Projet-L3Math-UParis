@@ -120,10 +120,10 @@ pal_256(struct pal_image* pali) {
 
 unsigned char
 findClosestColorFromPalette(const unsigned char* originalPixel, const unsigned char* palette, const int pal_len) {
-    int minimal = norme(originalPixel, palette), current = 0;
+    int minimal = normeEuclidienne(originalPixel, palette), current = 0;
     unsigned char index = -1;
     for(int k = 0; k < pal_len; k++) {
-	current = norme(originalPixel, &palette[k*3]);
+	current = normeEuclidienne(originalPixel, &palette[k*3]);
 	if(current <= minimal) {
 	    index = k;
 	    minimal = current;
@@ -134,6 +134,6 @@ findClosestColorFromPalette(const unsigned char* originalPixel, const unsigned c
 }
 
 int
-norme(const unsigned char* C1, const unsigned char* C2) {
-    return (C1[0]-C2[0])*(C1[0]-C2[0]) + (C1[1]-C2[1])*(C1[1]-C2[1]) + (C1[2]-C2[2])*(C1[2]-C2[2]);
+normeEuclidienne(const unsigned char* C1, const unsigned char* C2) {
+    return (C1[0]-C2[0])*(C1[0]-C2[0]) +  (C1[1]-C2[1])*(C1[1]-C2[1]) + (C1[2]-C2[2])*(C1[2]-C2[2]);
 }

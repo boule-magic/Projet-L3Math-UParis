@@ -12,7 +12,7 @@ main(int argc, char **argv)
     struct image* img;
     struct pal_image* pali;
     int rc;
-    int argp = 0, argd = 0 , argn = 2, args = 1 , argP ;
+    int argp = 0, argd = 0 , argn = 2, args = 1 , argP = 0 ;
 
     fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1 or 2] [-n number] [-s number]\n", argv[0]);
     
@@ -26,6 +26,10 @@ main(int argc, char **argv)
 	
         switch(opt) {
 	case 'p': // "p" comme "palette"
+	    if(argP != 0) {
+		fprintf(stderr, "You must choose between \"p\" and \"P\" options.");
+		return 1;
+	    }
 	    if(optarg != NULL) 	argp = atoi(optarg);
 	    else argp = 0;
 	    break;
@@ -38,13 +42,20 @@ main(int argc, char **argv)
 	    else argn = 2 ;
 	    break;
 	case 's' :
-	  if(optarg != NULL) args = atoi(optarg);
-	  else args = 1;
-	  break;
+	    if(optarg != NULL) args = atoi(optarg);
+	    else args = 1;
+	    break;
 	case 'P': // palette dynamique
-	  if(optarg != NULL) argP = atoi(optarg);
-	  else argP = 0 ;
-	  break;
+	    if(argp != 0) {
+		fprintf(stderr, "You must choose between \"p\" and \"P\" options.");
+		return 1;
+	    } else if(argP < 0 || argP > 256) {
+		fprintf(stderr, "The palette can't exceed 256 colors (and obviously can't be negative).");
+		return 1;
+	    }
+	    if(optarg != NULL) argP = atoi(optarg);
+	    else argP = 0 ;
+	    break;
         default:
             fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1 or 2] [-n number] [-P number]\n", argv[0]);
             return 1;
@@ -82,71 +93,72 @@ main(int argc, char **argv)
     }
     ///création de la palette de couleur
     switch(argp) {
-        case 8:
-	    printf("Palette de 8 couleurs : saturation\n");
-	    pal_8(pali); //définition palette de 8 couleurs
-	    break;
-	case 16:
-	    printf("Palette de 16 couleurs : CGA\n");
-	    pal_16(pali);
-	    break;
-	case 64:
-	    printf("Palette de 64 couleurs : 4-4-4\n");
-	    pal_64(pali);
-	    gen_pal_image(pali, img , argn );
-	    break;
-	case 216:
-	    printf("Palette de 216 couleurs : 6-6-6\n");
-	    pal_216(pali);
-	    break;
-	case 252:
-	    printf("Palette de 252 couleurs : 6-7-6\n");
-	    pal_252(pali);
-	    break;
-	case 2:
-	    printf("Palette de 2 couleurs : noir et blanc\n");
-	    pal_2(pali);
-	    break;
-	case 256:
-	    printf("Palette de 256 couleurs : niveaux de gris\n");
-	    pal_256(pali);
-	    break;
-	case 0:
-	    printf("Conversion de l'image en image à palette de couleurs\n"); 
-	    printf("(fonctionne seulement si l'image est constituée de moins de 256 couleurs)\n");
-	    printf("The available palettes are :\n");
-	    printf("Colors :\n");
-	    printf("-p 8\n");
-	    printf("-p 16\n");
-	    printf("-p 64\n");
-	    printf("-p 216\n");
-	    printf("-p 252\n");
-	    printf("Black & white :\n");
-	    printf("-p 2\n");
-	    printf("-p 256\n");
-	    break;
-	default:
-	    printf("Unavailable palette\n");
-	    printf("The available palettes are :\n");
-	    printf("Colors :\n");
-	    printf("-p 8\n");
-	    printf("-p 16\n");
-	    printf("-p 64\n");
-	    printf("-p 216\n");
-	    printf("-p 252\n");
-	    printf("Black & white :\n");
-	    printf("-p 2\n");
-	    printf("-p 256\n");
-	    return 1;
+    case 8:
+	printf("Palette de 8 couleurs : saturation\n");
+	pal_8(pali); //définition palette de 8 couleurs
+	break;
+    case 16:
+	printf("Palette de 16 couleurs : CGA\n");
+	pal_16(pali);
+	break;
+    case 64:
+	printf("Palette de 64 couleurs : 4-4-4\n");
+	pal_64(pali);
+	gen_pal_image(pali, img , argn );
+	break;
+    case 216:
+	printf("Palette de 216 couleurs : 6-6-6\n");
+	pal_216(pali);
+	break;
+    case 252:
+	printf("Palette de 252 couleurs : 6-7-6\n");
+	pal_252(pali);
+	break;
+    case 2:
+	printf("Palette de 2 couleurs : noir et blanc\n");
+	pal_2(pali);
+	break;
+    case 256:
+	printf("Palette de 256 couleurs : niveaux de gris\n");
+	pal_256(pali);
+	break;
+    case 0:
+	if ( argP != 0 ){ //création de la palette dynamique
+	    palette_dynamique( pali , img , argP ) ;
+	} else {  
+	printf("Conversion de l'image en image à palette de couleurs\n"); 
+	printf("(fonctionne seulement si l'image est constituée de moins de 256 couleurs)\n");
+	printf("The available palettes are :\n");
+	printf("Colors :\n");
+	printf("-p 8\n");
+	printf("-p 16\n");
+	printf("-p 64\n");
+	printf("-p 216\n");
+	printf("-p 252\n");
+	printf("Black & white :\n");
+	printf("-p 2\n");
+	printf("-p 256\n");
 	}
-    //création de la palette dynamique
-    if ( argP != 0 ){
-      palette_dynamique( pali , img , argP ) ;
-    }    
+	break;
+    default:
+	printf("Unavailable palette\n");
+	printf("The available palettes are :\n");
+	printf("Colors :\n");
+	printf("-p 8\n");
+	printf("-p 16\n");
+	printf("-p 64\n");
+	printf("-p 216\n");
+	printf("-p 252\n");
+	printf("Black & white :\n");
+	printf("-p 2\n");
+	printf("-p 256\n");
+	return 1;
+    }
+     
     ///création de l'image indexée
     switch(argd) {
     case 0:
-	printf("Conversion en image indexée classique\n");
+	printf("Conversion en image indexée\n");
 	if(gen_pal_image(pali, img , argn ) == -1) {
 	    fprintf(stderr, "Conversion error\n");
 	    return 1;
@@ -203,7 +215,7 @@ main(int argc, char **argv)
     else {
 	char cmd[strlen(argv[optind + 1]) + 5];
 	strcpy(cmd, "eog ");
-	strcat(cmd, argv[optind + 1]);	
+	strcat(cmd, argv[optind + 1]);
         int syst = system(cmd);
 	if ( syst != 0 ) {
 	    fprintf( stderr, "Unable to launch command  : %s\n", cmd );

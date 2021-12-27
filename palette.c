@@ -4,6 +4,21 @@
 
 #include "palette.h"
 
+struct nb_couleur {
+    int nb;
+    unsigned char ucr, ucv, ucb;
+} ;
+
+struct node {
+  struct nb_couleur nc ;
+  struct node *left ;
+  struct node *right ;
+} ;
+
+void free_tree ( struct node *n );
+struct node * mknode ( struct nb_couleur nc , struct node *left , struct node *right );
+struct node * insert(struct nb_couleur newnc, struct node *abr);
+
 void
 pal_8(struct pal_image* pali) {
     //rajouter un free au cas où pali->pal != NULL ?
@@ -138,29 +153,18 @@ norme(const unsigned char* C1, const unsigned char* C2) {
     return (C1[0]-C2[0])*(C1[0]-C2[0]) + (C1[1]-C2[1])*(C1[1]-C2[1]) + (C1[2]-C2[2])*(C1[2]-C2[2]);
 }
 
-
-// PROBLEME AU NIVEAU DES COULEURS, NE DEPEND NI DU R, V OU B / DEPEND DE LA PLACE DE LA COULEUR DANS L'IMAGE (REGARDER LES BOUCLES) => NE PREND PAS CERTAINES COULEURS, ET M*RDE UN PEU AU NIVEAU DES PLUS UTILISEES
-// PROBLEME VALGRIND
-
-
-struct nb_couleur {
-  unsigned char ucr , ucv , ucb ;
-  int nb ;
-} ;
-
-struct node {
-  struct nb_couleur *nc ;
-  struct node *left ;
-  struct node *right ;
-} ;
-
-struct nb_couleur *init_cl () {
-  struct nb_couleur *nc = malloc ( sizeof(struct nb_couleur) ) ;
-  nc->nb = 1 ;
-  return nc ;
+void
+free_tree ( struct node *n ) {
+  if ( n == NULL ) {
+    return ;
+  }
+  free_tree ( n->left ) ;
+  free_tree ( n->right ) ;
+  free (n) ;    
 }
 
-struct node *mknode ( struct nb_couleur *nc , struct node *left , struct node *right ) {
+struct node *
+mknode ( struct nb_couleur nc , struct node *left , struct node *right ) {
   struct node *nouv = malloc ( sizeof(struct node) ) ;
   nouv->nc = nc ;
   nouv->left = left ;
@@ -168,186 +172,116 @@ struct node *mknode ( struct nb_couleur *nc , struct node *left , struct node *r
   return nouv ;
 }
 
-void free_tree ( struct node *n ) {
-  if ( n == NULL ) {
-    return ;
-  }
-  free_tree ( n->left ) ;
-  free_tree ( n->right ) ;
-  free ( n->nc ) ; // PROBLEME FREE RESOLU , PB VALGRIND MAINTENANT
-  free (n) ;    
-}
-
-// VOIR SI JE PEUX PAS LE FAIRE PLUS COURT
-struct node *insert ( struct nb_couleur *nc , struct node *abr , int n ) { // n=1 : ucr ; n=2 : ucv ; n=3 : ucb !!! TJS METTRE n=1 !!!
-  if ( n==1 ) { // ROUGE
-    if ( abr == NULL ) {
-      return mknode( nc , NULL , NULL ) ;
+struct node *
+insert(struct nb_couleur newnc, struct node *abr) {
+    if(abr == NULL) {
+	abr = mknode(newnc, NULL, NULL);
+	return abr;
     }
-    if ( nc->ucr < abr->nc->ucr ) {
-      if ( abr->left == NULL ) {
-	abr->left = mknode( nc , NULL , NULL ) ;
-      } else {
-	insert ( nc , abr->left , 1 ) ;
-      }
-    } else if ( nc->ucr > abr->nc->ucr ) {
-      if ( abr->right == NULL ) {
-	abr->right = mknode( nc , NULL , NULL ) ;
-      } else {
-	insert ( nc , abr->right , 1 ) ;
-      }
-    } else if ( nc->ucr == abr->nc->ucr ) {
-      insert ( nc , abr , 2 ) ; // REGARDE LE VERT
-    }
-  } else if ( n==2 ) { // VERT
-    if ( abr == NULL ) {
-      return mknode( nc , NULL , NULL ) ;
-    }
-    if ( nc->ucv < abr->nc->ucv ) {
-      if ( abr->left == NULL ) {
-	abr->left = mknode( nc , NULL , NULL ) ;
-      } else {
-	insert ( nc , abr->left , 2 ) ;
-      }
-    } else if ( nc->ucv > abr->nc->ucv ) {
-      if ( abr->right == NULL ) {
-	abr->right = mknode( nc , NULL , NULL ) ;
-      } else {
-	insert ( nc , abr->right , 2 ) ;
-      }
-    } else if ( nc->ucv == abr->nc->ucv ) {
-      insert ( nc , abr , 3 ) ; // REGARDE LE BLEU
-    }
-  } else if ( n==3 ) { // BLEU
-    if ( abr == NULL ) {
-      return mknode( nc , NULL , NULL ) ;
-    }
-    if ( nc->ucb < abr->nc->ucb ) {
-      if ( abr->left == NULL ) {
-	abr->left = mknode( nc , NULL , NULL ) ;
-      } else {
-	insert ( nc , abr->left , 3 ) ;
-      }
-    } else if ( nc->ucb > abr->nc->ucb ) {
-      if ( abr->right == NULL ) {
-	abr->right = mknode( nc , NULL , NULL ) ;
-      } else {
-	insert ( nc , abr->right , 3 ) ;
-      }
-    } else if ( nc->ucb == abr->nc->ucb ) {
-      abr->nc->nb++ ; // MODIFIE LE NOMBRE
-      free(nc);
-    }
-  }/* else if ( n==-1 ) {       NE SERT PLUS A RIEN
-    if ( abr == NULL ) {
-      return mknode( nc , NULL , NULL ) ;
-    }
-    if ( nc->nb <= abr->nc->nb ) {
-      if ( abr->left == NULL ) {
-	abr->left = mknode( nc , NULL , NULL ) ;
-      } else {
-	insert ( nc , abr->left , -1 ) ;
-      }
-    } else {
-      if ( abr->right == NULL ) {
-	abr->right = mknode( nc , NULL , NULL ) ;
-      } else {
-	insert ( nc , abr->right , -1 ) ;
-      }
-    }
-    }*/
-  return abr ;
-}
-
-struct buffer {
-  struct nb_couleur **c ;
-  int len ;
-  int cap ;
-} ;
-
-struct buffer *new_buffer ( int cap ) {
-  struct nb_couleur **c = malloc ( cap*sizeof(struct nb_couleur) ) ;
-  struct buffer *b = malloc ( sizeof(struct buffer) ) ;
-  b->len = 0 ;
-  b->cap = cap ;
-  b->c = c ;
-  return b ;
-}
-
-void destroy_buffer ( struct buffer *b ) {
-  free ( b->c ) ;
-  free ( b ) ;
-}
-
-int snoc ( struct buffer *b , struct nb_couleur *c ) {
-  if ( b->len == b->cap ) {
-    return -1 ;
-  } else {
-    b->c[b->len] = c ;
-    b->len++ ;
-    return 1 ;
-  }
-}
-
-void compare ( struct nb_couleur *nc , struct buffer *b , int n ) {
-  if ( b->len < n ) {
-    snoc ( b , nc ) ;
-  } else {  // COMPARE LES NC RESSTANTES
-    for ( int i = 0 ; i < n ; i++ ) {
-      if ( nc->nb > b->c[i]->nb ) { 
-	b->c[i] = nc ;
-	break ;
-      }
-    }
-  }
-}
-
-void recup_infix_max ( struct node *abr , struct buffer *b , int n ) {
-    if ( abr == NULL ) {
-	return ;
-    }
-    recup_infix_max ( abr->left , b , n ) ;
-    compare ( abr->nc , b , n ) ;
-    recup_infix_max ( abr->right , b , n ) ;
-}
-
-void palette_dynamique ( struct pal_image *final , struct image *initial , int n ) {
-  final->pal = malloc ( 3*n*sizeof(unsigned char) ) ;
-  final->pal_len = n ;
-  // ARBRE COULEUR
-  struct nb_couleur *nc = init_cl () ;
-  nc->ucr = initial->data[0][0] ;
-  nc->ucv = initial->data[0][1] ;
-  nc->ucb = initial->data[0][2] ;
-  int k=1 ;
-  struct node *abr = mknode ( nc , NULL , NULL ) ;
-  for(int i = 0 ; i < initial->height ; i++) {
-    for(int j = 0 ; j < initial->width ; j++) {
-      if ( i!=0 || j!=0 ) {
-	struct nb_couleur *nc2 = init_cl () ;
-	nc2->ucr = initial->data[i][ j*4 ] ;
-	nc2->ucv = initial->data[i][ j*4 + 1 ] ;
-	nc2->ucb = initial->data[i][ j*4 + 2 ] ;
-	insert ( nc2 , abr , 1 ) ;
-	k++;
+    struct node* current = abr;
+    while(1) {
+	if(newnc.ucr < current->nc.ucr) {
+	    if(current->left != NULL) {
+		current = current->left;
+	    } else {
+		current->left = mknode(newnc, NULL, NULL);
+		return current->left; 
+	    }
+	} else if(newnc.ucr > current->nc.ucr) {
+	    if(current->right != NULL) {
+		current = current->right;
+	    } else {
+		current->right = mknode(newnc, NULL, NULL);
+		return current->right; 
+	    }
+	} else { // Si r=r on passe au vert
+	    if(newnc.ucv < current->nc.ucv) {
+		if(current->left != NULL) {
+		    current = current->left;
+		} else {
+		    current->left = mknode(newnc, NULL, NULL);
+		    return current->left;
+		}
+	    } else if(newnc.ucv > current->nc.ucv) {
+		if(current->right != NULL) {
+		    current = current->right;
+		} else {
+		    current->right = mknode(newnc, NULL, NULL);
+		    return current->right; 
+		}
+	    } else { // Si v=v on passe au bleu
+		if(newnc.ucb < current->nc.ucb) {
+		    if(current->left != NULL) {
+			current = current->left;
+		    } else {
+			current->left = mknode(newnc, NULL, NULL);
+			return current->left; 
+		    }
+		} else if(newnc.ucb > current->nc.ucb) {
+		    if(current->right != NULL) {
+			current = current->right;
+		    } else {
+			current->right = mknode(newnc, NULL, NULL);
+			return current->right; 
+		    }
+		} else {
+		    current->nc.nb++; // Si rvb=rvb on incrémente
+		    return current;
+		}
+	    }
 	}
     }
+}
+
+void
+palette_dynamique ( struct pal_image *final , struct image *initial , int n ) {
+  final->pal = malloc ( 3*n*sizeof(unsigned char) ) ;
+  if(final->pal == NULL) {
+      fprintf(stderr, "Couldn't allocate pal_image.pal\n");
+      return;
   }
-  printf("taille = %d\n",k);
-  // NOMBRE
-  //A PARTIR D'ICI, LES FREE SONT BONS, PLUS QUE 12 A FAIRE ET NE DEPEND PAS DU NB DE COULEURS DEMANDEES / VARIE CELON L'IMAGE
-  struct buffer *tab = new_buffer ( n*2 ) ; 
-  recup_infix_max ( abr , tab , n ) ;
-  free_tree(abr) ;
-  // IMAGE FINALE
-  for ( int i = 0 ; i < tab->len ; i++ ) {
-    final->pal[ i*3 ] = tab->c[i]->ucr ;
-    final->pal[ i*3 + 1 ] = tab->c[i]->ucv ;
-    final->pal[ i*3 +2 ] = tab->c[i]->ucb ;
-    printf("%d:\nr=%d\n", i ,final->pal[ i*3]) ;
-    printf("v=%d\n" ,final->pal[ i*3 + 1 ]) ;
-    printf("b=%d\n" ,final->pal[ i*3 +2 ]) ;
-    printf("nb=%d\n\n" , tab->c[i]->nb);
+  final->pal_len = n ;
+  struct nb_couleur nb_palette[n];
+  int nb_palette_len = n;
+  for(int i = 0 ; i < nb_palette_len ; i++) {
+      nb_palette[i].nb = 0;
+      nb_palette[i].ucr = -1;
+      nb_palette[i].ucv = -1;
+      nb_palette[i].ucb = -1;
   }
-  destroy_buffer ( tab ) ;
+  struct nb_couleur nc;
+  struct node *abr = mknode(nb_palette[0], NULL, NULL), *newabr;
+  struct nb_couleur* pt_nb_couleur_min = &nb_palette[0];
+  
+  for(int i = 0 ; i < initial->height ; i++) {
+      for(int j = 0 ; j < initial->width ; j++) {
+	  nc.nb = 1 ;
+	  nc.ucr = initial->data[i][ j*4     ] ;
+	  nc.ucv = initial->data[i][ j*4 + 1 ] ;
+	  nc.ucb = initial->data[i][ j*4 + 2 ] ;
+	  newabr = insert ( nc , abr ) ;
+	  for(int l = 0 ; l < nb_palette_len ; l++) {
+	      if(newabr->nc.ucr == nb_palette[l].ucr &&
+		 newabr->nc.ucv == nb_palette[l].ucv &&
+		 newabr->nc.ucb == nb_palette[l].ucb) {
+		  nb_palette[l].nb = newabr->nc.nb;
+		  pt_nb_couleur_min = &nb_palette[l];
+		  break;
+	      } else if(pt_nb_couleur_min->nb > nb_palette[l].nb) {
+		  pt_nb_couleur_min = &nb_palette[l];
+	      }
+	  }
+	  if(newabr->nc.nb > pt_nb_couleur_min->nb) {
+	      *pt_nb_couleur_min = newabr->nc ;
+	  }
+      }
+  }
+
+  for(int i = 0 ; i < n ; i++) {
+      final->pal[i*3  ] = nb_palette[i].ucr ;
+      final->pal[i*3+1] = nb_palette[i].ucv ;
+      final->pal[i*3+2] = nb_palette[i].ucb ;
+  }
+
+  free_tree(abr);
 }

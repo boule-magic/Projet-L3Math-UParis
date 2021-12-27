@@ -52,7 +52,6 @@ image_scaling(int height, int width, const struct image* img) {
 	return NULL;
     }
     
-    printf("factor = %.2f\n", factor);
     struct image* scaledimg = new_scaled_image(factor, img);
     if(scaledimg == NULL) {
 	return NULL;

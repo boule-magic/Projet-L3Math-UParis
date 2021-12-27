@@ -10,6 +10,7 @@ void pal_216(struct pal_image* pali);
 void pal_252(struct pal_image* pali);
 void pal_2(struct pal_image* pali);
 void pal_256(struct pal_image* pali);
+void palette_dynamique ( struct pal_image *final , struct image *initial , int n ) ;
 
 unsigned char findClosestColorFromPalette(const unsigned char* originalPixel, const unsigned char* palette, const int pal_len);
 int norme(const unsigned char* C1, const unsigned char* C2);

@@ -29,6 +29,7 @@ make scaling
 ```
 ## Options :
  * p : Choix de la palette de couleurs
+ * P : Choix de la taille de la palette de couleur dynamique
  * d : Choix de l'algorithme de diffusion d'erreur
  * h : Choix de la hauteur de l'image de sortie (en pixel)
  * w : Choix de la largeur de l'image de sortie (en pixel)

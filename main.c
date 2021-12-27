@@ -13,18 +13,22 @@ main(int argc, char **argv)
     struct image* img;
     struct pal_image* pali;
     int rc;
-    int argp = 0, argd = 0, argx = 0, argw = 0, argh = 0;
+    int argp = 0, argd = 0, argx = 0, argw = 0, argh = 0, argP = 0 ;
     
     //lecture des paramètres du main (arc,argv)
     while(1) {
         int opt;
-
-        opt = getopt(argc, argv, "xd:p:w:h:"); //"ab::c:" argless a, optarg b, mandatoryarg c
+	
+        opt = getopt(argc, argv, "xd:p:w:h:P:"); //"ab::c:" argless a, optarg b, mandatoryarg c
         if(opt < 0)
             break;
 	
         switch(opt) {
 	case 'p': // "p" comme "palette"
+	    if(argP != 0) {
+		fprintf(stderr, "You must choose between \"p\" and \"P\" options.");
+		return 1;
+	    }
 	    if(optarg != NULL) 	argp = atoi(optarg);
 	    else argp = 0;
 	    break;
@@ -43,14 +47,25 @@ main(int argc, char **argv)
 	case 'x': // "x" comme "execution"
 	    argx = 1;
 	    break;
+	case 'P': // palette dynamique
+	    if(argp != 0) {
+		fprintf(stderr, "You must choose between \"p\" and \"P\" options.");
+		return 1;
+	    } else if(argP < 0 || argP > 256) {
+		fprintf(stderr, "The palette can't exceed 256 colors (and obviously can't be negative).");
+		return 1;
+	    }
+	    if(optarg != NULL) argP = atoi(optarg);
+	    else argP = 0 ;
+	    break;
         default:
-            fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1/2/3] [-n number] [-x] [-w width] [-h height] [-s scaling_factor]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [source.png] [output.png] [-p/-P number] [-d 1/2/3] [-n number] [-x] [-w width] [-h height]\n", argv[0]);
             return 1;
         }
     }
 
     if(argc != optind + 1 && argc != optind + 2) {
-        fprintf(stderr, "Usage: %s [source.png] [output.png] [-p number] [-d 1/2/3] [-n number] [-x] [-w width] [-h height] [-s scaling_factor]\n", argv[0]);
+        fprintf(stderr, "Usage: %s [source.png] [output.png] [-p/-P number] [-d 1/2/3] [-n number] [-x] [-w width] [-h height]\n", argv[0]);
         return 1;
     }
     

@@ -126,7 +126,9 @@ main(int argc, char **argv)
 	break;
     case 0:
 	if ( argP != 0 ){ //création de la palette dynamique
-	    palette_dynamique( pali , img , argP ) ;
+	    //palette_dynamique( pali , img , argP ) ;
+	    printf("Palette dynamique de %d couleurs\n", argP);
+	    palette_dynamique_median_cut(img, pali, argP);
 	} else {  
 	    printf("Conversion de l'image en image à palette de couleurs\n"); 
 	    printf("(fonctionne seulement si l'image est constituée de moins de 256 couleurs)\n");
@@ -193,9 +195,9 @@ main(int argc, char **argv)
     
     //écriture de l'image générée
     if(argv[optind + 1] == NULL) {
-        rc = write_pal_png("./img/output.png", pali);
+        rc = write_pal_png("./output.png", pali);
 	if(rc < 0) {
-	    fprintf(stderr, "Couldn't write ./img/output.png.\n");
+	    fprintf(stderr, "Couldn't write ./output.png.\n");
 	    return 1;
 	}
     }
@@ -214,7 +216,7 @@ main(int argc, char **argv)
     //ouverture automatique de l'image générée
     if(argx == 1) { 
 	if(argv[optind + 1] == NULL) {
-	    char cmd[] = "eog img/output.png";
+	    char cmd[] = "eog output.png";
 	    int syst = system(cmd);
 	    if ( syst != 0 ) {
 		fprintf( stderr, "Unable to launch command : %s\n", cmd );

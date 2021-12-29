@@ -1,6 +1,7 @@
 #include <png.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "palette.h"
 
@@ -18,6 +19,15 @@ struct node {
 void free_tree ( struct node *n );
 struct node * mknode ( struct nb_couleur nc , struct node *left , struct node *right );
 struct node * insert(struct nb_couleur newnc, struct node *abr);
+void addTheMostCommonColors(struct node *tree, struct nb_couleur* nb_palette, int nb_palette_len);
+void color_swapping(unsigned char* c1, unsigned char* c2);
+long int choix_pivot(unsigned char* colors, long int premier, long int dernier);
+long int partitionner(unsigned char* colors, long int premier, long int dernier, long int pivot, int color_reference);
+void quicksort(unsigned char* colors, long int premier, long int dernier, int color_reference);
+unsigned char* colors_tab_from_image(struct image* img);
+unsigned char max(unsigned char c1, unsigned char c2);
+void bucket(int nb_bucket, struct pal_image* pali, unsigned char* colors, long int premier, long int dernier);
+void average_color_calculator(unsigned char* colors, long int premier, long int dernier, unsigned char* average_color);
 
 void
 pal_8(struct pal_image* pali) {
@@ -234,6 +244,28 @@ insert(struct nb_couleur newnc, struct node *abr) {
 }
 
 void
+addTheMostCommonColors(struct node *tree, struct nb_couleur* nb_palette, int nb_palette_len)
+{
+    if(!tree) return;
+
+    if(tree->left)  addTheMostCommonColors(tree->left, nb_palette, nb_palette_len);
+
+    for(int i = 0 ; i < nb_palette_len ; i++) {
+	if(tree->nc.nb > nb_palette[i].nb) {
+	    nb_palette[i] = tree->nc;	    
+	    break;
+	}
+    }  
+
+    if(tree->right) addTheMostCommonColors(tree->right, nb_palette, nb_palette_len);
+}
+
+unsigned char
+max(unsigned char c1, unsigned char c2) {
+    return (c1 > c2) ? c1 : c2;
+}
+
+void
 palette_dynamique ( struct pal_image *final , struct image *initial , int n ) {
   final->pal = malloc ( 3*n*sizeof(unsigned char) ) ;
   if(final->pal == NULL) {
@@ -250,8 +282,7 @@ palette_dynamique ( struct pal_image *final , struct image *initial , int n ) {
       nb_palette[i].ucb = -1;
   }
   struct nb_couleur nc;
-  struct node *abr = mknode(nb_palette[0], NULL, NULL), *newabr;
-  struct nb_couleur* pt_nb_couleur_min = &nb_palette[0];
+  struct node *abr = mknode(nb_palette[0], NULL, NULL);
   
   for(int i = 0 ; i < initial->height ; i++) {
       for(int j = 0 ; j < initial->width ; j++) {
@@ -259,23 +290,11 @@ palette_dynamique ( struct pal_image *final , struct image *initial , int n ) {
 	  nc.ucr = initial->data[i][ j*4     ] ;
 	  nc.ucv = initial->data[i][ j*4 + 1 ] ;
 	  nc.ucb = initial->data[i][ j*4 + 2 ] ;
-	  newabr = insert ( nc , abr ) ;
-	  for(int l = 0 ; l < nb_palette_len ; l++) {
-	      if(newabr->nc.ucr == nb_palette[l].ucr &&
-		 newabr->nc.ucv == nb_palette[l].ucv &&
-		 newabr->nc.ucb == nb_palette[l].ucb) {
-		  nb_palette[l].nb = newabr->nc.nb;
-		  pt_nb_couleur_min = &nb_palette[l];
-		  break;
-	      } else if(pt_nb_couleur_min->nb > nb_palette[l].nb) {
-		  pt_nb_couleur_min = &nb_palette[l];
-	      }
-	  }
-	  if(newabr->nc.nb > pt_nb_couleur_min->nb) {
-	      *pt_nb_couleur_min = newabr->nc ;
-	  }
+	  insert ( nc , abr ) ;
       }
   }
+
+  addTheMostCommonColors(abr, nb_palette, nb_palette_len); 
 
   for(int i = 0 ; i < n ; i++) {
       final->pal[i*3  ] = nb_palette[i].ucr ;
@@ -284,4 +303,153 @@ palette_dynamique ( struct pal_image *final , struct image *initial , int n ) {
   }
 
   free_tree(abr);
+}
+
+void
+palette_dynamique_median_cut(struct image* initial, struct pal_image* final, int palette_len) {
+    final->pal = malloc(palette_len*3*sizeof(unsigned char));
+    final->pal_len = 0;
+    unsigned char* colors = colors_tab_from_image(initial);
+
+    bucket(palette_len, final, colors, 0, initial->height*initial->width-1);
+
+    free(colors);
+}
+
+void
+bucket(int nb_bucket, struct pal_image* pali, unsigned char* colors, long int premier, long int dernier) {
+
+    unsigned char r_min, r_max, g_min, g_max, b_min, b_max, r_amplitude, g_amplitude, b_amplitude, max_amplitude;
+    int color_reference = -1;
+    r_min = colors[premier*3+0];
+    r_max = colors[premier*3+0];
+    g_min = colors[premier*3+1];
+    g_max = colors[premier*3+1];
+    b_min = colors[premier*3+2];
+    b_max = colors[premier*3+2];
+  
+    for(long int i = premier ; i < dernier ; i++) {
+	//printf("%ld : (%d,%d,%d)\n",i ,colors[i*3+0],colors[i*3+1],colors[i*3+2]);
+	if(r_min > colors[i*3+0]) r_min = colors[i*3+0];
+	if(g_min > colors[i*3+1]) g_min = colors[i*3+1];
+	if(b_min > colors[i*3+2]) b_min = colors[i*3+2];
+	if(r_max < colors[i*3+0]) r_max = colors[i*3+0];
+	if(g_max < colors[i*3+1]) g_max = colors[i*3+1];
+	if(b_max < colors[i*3+2]) b_max = colors[i*3+2];
+    }
+
+    r_amplitude = r_max - r_min;
+    g_amplitude = g_max - g_min;
+    b_amplitude = b_max - b_min;
+
+    /* printf("r_amplitude = %d\n", r_amplitude); */
+    /* printf("g_amplitude = %d\n", g_amplitude); */
+    /* printf("b_amplitude = %d\n", b_amplitude); */
+
+    max_amplitude = max(r_amplitude, max(g_amplitude, b_amplitude));
+
+    if(max_amplitude == r_amplitude) color_reference = 0;
+    else if(max_amplitude == r_amplitude) color_reference = 1;
+    else color_reference = 2;
+  
+    quicksort(colors, premier, dernier, color_reference);
+
+    /* for(int i = premier ; i < 10 ; i++) { */
+    /* 	printf("(%d,%d,%d)\n", colors[i*3+0], colors[i*3+1], colors[i*3+2]); */
+    /* } */
+    /* for(int i = dernier-10 ; i < dernier ; i++) { */
+    /* 	printf("(%d,%d,%d)\n", colors[i*3+0], colors[i*3+1], colors[i*3+2]); */
+    /* } */
+
+    //nb_bucket = sqrt(nb_bucket);
+    if(nb_bucket > 1) {
+	long int pivot_median = premier+(dernier-premier)/2;
+	bucket(nb_bucket/2, pali, colors, premier, pivot_median);
+	bucket(nb_bucket/2, pali, colors, pivot_median, dernier);
+    } else {
+	pali->pal_len++;
+	unsigned char average_color[3];
+	average_color_calculator(colors, premier, dernier, average_color);
+	//printf("%d : (%d,%d,%d)\n", pali->pal_len, average_color[0], average_color[2], average_color[2]);
+	pali->pal[(pali->pal_len-1)*3+0] = average_color[0];
+	pali->pal[(pali->pal_len-1)*3+1] = average_color[1];
+	pali->pal[(pali->pal_len-1)*3+2] = average_color[2];
+    }
+}
+
+void
+average_color_calculator(unsigned char* colors, long int premier, long int dernier, unsigned char* average_color) {
+    long double average_r = 0, average_g = 0, average_b = 0;
+    long double coef;
+    
+    for(long int i = premier ; i <= dernier ; i++) {
+	coef = i-premier+1;
+	average_r = (average_r*(coef-1)+colors[i*3+0])/coef;
+        average_g = (average_g*(coef-1)+colors[i*3+1])/coef;
+        average_b = (average_b*(coef-1)+colors[i*3+2])/coef;
+    }
+    average_color[0] = (unsigned char)average_r;
+    average_color[1] = (unsigned char)average_g;
+    average_color[2] = (unsigned char)average_b;
+}
+
+unsigned char*
+colors_tab_from_image(struct image* img) {
+    long int colors_len = img->height*img->width, n = 0;
+    unsigned char* colors = malloc(3*colors_len*sizeof(unsigned char));
+    if(colors == NULL) {
+	fprintf(stderr, "Aïe aïe aïe... l'image est trop grande.");
+	return NULL;
+    }
+    for(int i = 0 ; i < img->height ; i++) {
+	for(int j = 0 ; j < img->width ; j++) {
+	    colors[n*3+0] = img->data[i][j*4+0];
+	    colors[n*3+1] = img->data[i][j*4+1];
+	    colors[n*3+2] = img->data[i][j*4+2];
+	    n++;
+	}
+    }
+    return colors;
+}
+
+void color_swapping(unsigned char* c1, unsigned char* c2) {
+    unsigned char r = c1[0];
+    unsigned char g = c1[1];
+    unsigned char b = c1[2];
+    c1[0] = c2[0];
+    c1[1] = c2[1];
+    c1[2] = c2[2];
+    c2[0] = r;
+    c2[1] = g;
+    c2[2] = b;
+}
+
+long int
+choix_pivot(unsigned char* colors, long int premier, long int dernier) {
+    return premier+(dernier-premier)/2; //jsp
+}
+
+long int
+partitionner(unsigned char* colors, long int premier, long int dernier, long int pivot, int color_reference) {
+    color_swapping(&colors[pivot*3], &colors[dernier*3]);
+    int j = premier;
+    for(int i = premier ; i < dernier ; i++) {
+	if(colors[i*3 + color_reference] <= colors[dernier*3 + color_reference]) {
+	    color_swapping(&colors[i*3], &colors[j*3]);
+	    j++;
+	}
+    }
+    color_swapping(&colors[dernier*3], &colors[j*3]);
+    return j;
+}
+
+void
+quicksort(unsigned char* colors, long int premier, long int dernier, int color_reference) {
+    long int pivot;
+    if (premier < dernier) {
+	pivot = choix_pivot(colors, premier, dernier);
+	pivot = partitionner(colors, premier, dernier, pivot, color_reference);
+	quicksort(colors, premier, pivot-1, color_reference);
+	quicksort(colors, pivot+1, dernier, color_reference);
+    }
 }

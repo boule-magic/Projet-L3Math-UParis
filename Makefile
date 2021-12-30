@@ -1,10 +1,10 @@
-IMG=img/aardvark.png # Image source pour les tests
-EXEC=compresspng     # Le nom du programme
+IMG=img/aardvark.png
+EXEC=compresspng
 
 all: release
 
 release: main.c dithering.c palette.c scaling.c pngio.c
-	gcc -Wall main.c dithering.c palette.c scaling.c pngio.c -lpng -lm -O2 -o $(EXEC)
+	gcc -Wall main.c dithering.c palette.c scaling.c pngio.c -lpng -lm -O3 -o $(EXEC)
 
 debug: main.c dithering.c palette.c scaling.c pngio.c
 	gcc -Wall main.c dithering.c palette.c scaling.c pngio.c -lpng -lm -g -o $(EXEC)_debug

@@ -11,7 +11,7 @@
 void errorPixelCalcul(unsigned char* originalPixel, unsigned char* newPixel, int* errorPixel);
 void errorApplication(unsigned char* pixel, int* errorPixel, double coef);
 unsigned char uCharCap(int num);
-const	double BAYER_2X2[2][2]  =  {{-0.25, 0.25},{0.5, 0}};        //	2x2 Bayer Dithering Matrix. Color levels: 5 ou 4 ? Pré-calculée !!
+const	double BAYER_2X2[2][2]  =  {{-0.25, 0.25},{0.5, 0}};        //	2x2 Bayer Dithering Matrix. Color levels: 5 ou 4 ? Pré-calculée
 const	int BAYER_4X4[4][4]  =  {                       //	4x4 Bayer Dithering Matrix. Color levels: 17
     {	 15, 195,  60, 240	},
     {	135,  75, 180, 120	},
@@ -56,7 +56,7 @@ naive_pal_image(struct pal_image* pali, const struct image* img) {
 	pali->pal_len = 0;
 	for(int i = 0; i < img->height; i++) {
 	    for(int j = 0; j < img->width; j++) {
-		exist = findClosestColorFromPalette(&img->data[i][j*4], pali->pal, pali->pal_len);
+		exist = findClosestColorFromPalette(&img->data[i][j*4], pali);
 		if(exist == -1 && pali->pal_len < 256) {
 		    pali->pal_len++;
 		    pali->pal[pali->pal_len*3-3] = img->data[i][j*4];
@@ -73,7 +73,7 @@ naive_pal_image(struct pal_image* pali, const struct image* img) {
     } else {
 	for(int i = 0; i < img->height; i++) {
 	    for(int j = 0; j < img->width; j++) {					
-		pali->data[i][j] = findClosestColorFromPalette(&img->data[i][j*4], pali->pal, pali->pal_len);
+		pali->data[i][j] = findClosestColorFromPalette(&img->data[i][j*4], pali);
 	    }
 	}
     }
@@ -93,7 +93,7 @@ floydSteinberg_pal_image(struct pal_image* pali, struct image* img) {
 	    originalPixel[1] = img->data[i][j*4+1];
 	    originalPixel[2] = img->data[i][j*4+2];
 		
-	    index = findClosestColorFromPalette(originalPixel, pali->pal, pali->pal_len);
+	    index = findClosestColorFromPalette(originalPixel, pali);
 	    pali->data[i][j] = index;
 		
 	    newPixel[0] = pali->pal[index*3  ];
@@ -127,7 +127,7 @@ atkinson_pal_image(struct pal_image* pali, struct image* img) {
 	    originalPixel[1] = img->data[i][j*4+1];
 	    originalPixel[2] = img->data[i][j*4+2];
 		
-	    index = findClosestColorFromPalette(originalPixel, pali->pal, pali->pal_len);
+	    index = findClosestColorFromPalette(originalPixel, pali);
 	    pali->data[i][j] = index;
 		
 	    newPixel[0] = pali->pal[index*3  ];
@@ -167,7 +167,7 @@ ordered_pal_image(struct pal_image* pali, const struct image* img) {
 		    
 		    errorApplication(pixel, diff, 1.0/cbrt(pali->pal_len));
 		    
-		    pali->data[i][j] = findClosestColorFromPalette(pixel, pali->pal, pali->pal_len); 
+		    pali->data[i][j] = findClosestColorFromPalette(pixel, pali); 
 		}
 	}
     return 1;

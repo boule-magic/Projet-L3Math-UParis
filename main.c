@@ -7,30 +7,43 @@
 #include "dithering.h"
 #include "scaling.h"
 
+void usage(FILE *f, char **argv);
+
 int
 main(int argc, char **argv)
 {
     struct image* img;
     struct pal_image* pali;
     int rc;
-    int argp = 0, argd = 0, argx = 0, argw = 0, argh = 0, argP = 0 ;
+    int argp = 0, argd = 0, argx = 0, argw = 0, argh = 0, argP = 0, argf = 0 ;
     
-    //lecture des paramètres du main (arc,argv)
+    //lecture des options
     while(1) {
         int opt;
 
-        opt = getopt(argc, argv, "xd:p:w:h:P:"); //"ab::c:" argless a, optarg b, mandatoryarg c
+        opt = getopt(argc, argv, "d:p:P:w:h:fx"); //"ab::c:" argless a, optarg b, mandatoryarg c
         if(opt < 0)
             break;
 	
         switch(opt) {
-	case 'p': // "p" comme "palette"
+	case 'p': // "p" comme "palette statique"
 	    if(argP != 0) {
 		fprintf(stderr, "You must choose between \"p\" and \"P\" options.");
 		return 1;
 	    }
 	    if(optarg != NULL) 	argp = atoi(optarg);
 	    else argp = 0;
+	    break;
+	case 'P': // "P" comme "palette dynamique"
+	    if(argp != 0) {
+		fprintf(stderr, "You must choose between \"p\" and \"P\" options.");
+		return 1;
+	    } else if(argP < 0 || argP > 256) {
+		fprintf(stderr, "The palette can't exceed 256 colors (and obviously can't be negative).");
+		return 1;
+	    }
+	    if(optarg != NULL) argP = atoi(optarg);
+	    else argP = 0 ;
 	    break;
 	case 'd': // "d" comme "dithering" et "diffusion d'erreur"
 	    if(optarg != NULL) argd = atoi(optarg) ;
@@ -44,28 +57,19 @@ main(int argc, char **argv)
 	    if(optarg != NULL) argw = atoi(optarg);
 	    else argw = 0;
 	    break;
+	case 'f': // "f" comme "fast"
+	    argf = 1;
+	    break;
 	case 'x': // "x" comme "execution"
 	    argx = 1;
 	    break;
-	case 'P': // palette dynamique
-	    if(argp != 0) {
-		fprintf(stderr, "You must choose between \"p\" and \"P\" options.");
-		return 1;
-	    } else if(argP < 0 || argP > 256) {
-		fprintf(stderr, "The palette can't exceed 256 colors (and obviously can't be negative).");
-		return 1;
-	    }
-	    if(optarg != NULL) argP = atoi(optarg);
-	    else argP = 0 ;
-	    break;
         default:
-            fprintf(stderr, "Usage: %s [source.png] [output.png] [-p/-P number] [-d 1/2/3] [-n number] [-x] [-w width] [-h height]\n", argv[0]);
             return 1;
         }
     }
 
     if(argc != optind + 1 && argc != optind + 2) {
-        fprintf(stderr, "Usage: %s [source.png] [output.png] [-p/-P number] [-d 1/2/3] [-n number] [-x] [-w width] [-h height]\n", argv[0]);
+        usage(stdout, argv);
         return 1;
     }
     
@@ -91,47 +95,53 @@ main(int argc, char **argv)
     pali = new_pal_image(img); //allocation
     if(pali == NULL) {
 	fprintf(stderr, "pal_image is broken !\n");
+	free_image(img);
         return 1;
     }
 
     //création de la palette de couleur
-    switch(argp) {
-    case 8:
-	printf("Palette de 8 couleurs : saturation\n");
-	pal_8(pali); //définition palette de 8 couleurs
-	break;
-    case 16:
-	printf("Palette de 16 couleurs : CGA\n");
-	pal_16(pali);
-	break;
-    case 64:
-	printf("Palette de 64 couleurs : 4-4-4\n");
-	pal_64(pali);
-	break;
-    case 216:
-	printf("Palette de 216 couleurs : 6-6-6\n");
-	pal_216(pali);
-	break;
-    case 252:
-	printf("Palette de 252 couleurs : 6-7-6\n");
-	pal_252(pali);
-	break;
-    case 2:
-	printf("Palette de 2 couleurs : noir et blanc\n");
-	pal_2(pali);
-	break;
-    case 256:
-	printf("Palette de 256 couleurs : niveaux de gris\n");
-	pal_256(pali);
-	break;
-    case 0:
-	if ( argP != 0 ){ //création de la palette dynamique
-	    //palette_dynamique( pali , img , argP ) ;
-	    printf("Palette dynamique de %d couleurs\n", argP);
-	    palette_dynamique_median_cut(img, pali, argP);
-	} else {  
-	    printf("Conversion de l'image en image à palette de couleurs\n"); 
-	    printf("(fonctionne seulement si l'image est constituée de moins de 256 couleurs)\n");
+    if(argp != 0 || argP != 0) {
+	switch(argp) {
+	case 8:
+	    printf("Palette de 8 couleurs : saturation\n");
+	    pal_8(pali); //définition palette de 8 couleurs
+	    break;
+	case 16:
+	    printf("Palette de 16 couleurs : CGA\n");
+	    pal_16(pali);
+	    break;
+	case 64:
+	    printf("Palette de 64 couleurs : 4-4-4\n");
+	    pal_64(pali);
+	    break;
+	case 216:
+	    printf("Palette de 216 couleurs : 6-6-6\n");
+	    pal_216(pali);
+	    break;
+	case 252:
+	    printf("Palette de 252 couleurs : 6-7-6\n");
+	    pal_252(pali);
+	    break;
+	case 2:
+	    printf("Palette de 2 couleurs : noir et blanc\n");
+	    pal_2(pali);
+	    break;
+	case 256:
+	    printf("Palette de 256 couleurs : niveaux de gris\n");
+	    pal_256(pali);
+	    break;
+	case 0:
+	    if (argP > 0 && argf == 0) {
+		printf("Palette dynamique de %d couleurs : median cut\n", argP);
+		palette_dynamique_median_cut(pali, img, argP);
+	    } else if (argP > 0 && argf == 1) {
+		palette_dynamique( pali , img , argP );
+	    } else {
+		fprintf(stderr, "Bad argument\n");
+		return 1;
+	    }
+	    break;
+	default:
 	    printf("The available palettes are :\n");
 	    printf("Colors :\n");
 	    printf("-p 8\n");
@@ -142,69 +152,78 @@ main(int argc, char **argv)
 	    printf("Black & white :\n");
 	    printf("-p 2\n");
 	    printf("-p 256\n");
+	    return 1;
 	}
-	break;
-    default:
-	printf("The available palettes are :\n");
-	printf("Colors :\n");
-	printf("-p 8\n");
-	printf("-p 16\n");
-	printf("-p 64\n");
-	printf("-p 216\n");
-	printf("-p 252\n");
-	printf("Black & white :\n");
-	printf("-p 2\n");
-	printf("-p 256\n");
-	return 1;
-    }
 
-    ///création de l'image indexée
-    switch(argd) {
-    case 0:
-	printf("Conversion en image indexée\n");
-	if(naive_pal_image(pali, img) == -1) {
-	    fprintf(stderr, "Conversion error\n");
+	///création de l'image indexée
+	switch(argd) {
+	case 0:
+	    printf("Conversion en image indexée\n");
+	    if(naive_pal_image(pali, img) == -1) {
+		fprintf(stderr, "Conversion error\n");
+		free_image(img);
+		free_pal_image(pali);
+		return 1;
+	    }
+	    break;
+	case 1:
+	    printf("Conversion en image indexée + dispersion d'erreur de Floyd-Steinberg\n");
+	    if(floydSteinberg_pal_image(pali, img) == -1) {
+		fprintf(stderr, "Conversion error\n");
+		free_image(img);
+		free_pal_image(pali);
+		return 1;
+	    }
+	    break;
+	case 2:
+	    printf("Conversion en image indexée + dispersion d'erreur d'Atkinson\n");
+	    if(atkinson_pal_image(pali, img) == -1) {
+		fprintf(stderr, "Conversion error\n");
+		free_image(img);
+		free_pal_image(pali);
+		return 1;
+	    }
+	    break;
+	case 3:
+	    printf("Conversion en image indexée + tramage ordonné\n");
+	    if(ordered_pal_image(pali, img) == -1) {
+		fprintf(stderr, "Conversion error\n");
+		free_image(img);
+		free_pal_image(pali);
+		return 1;
+	    }
+	    break;
+	default:
+	    fprintf(stderr, "Invalid argument of option d\n");
+	    free_image(img);
+	    free_pal_image(pali);
 	    return 1;
 	}
-	break;
-    case 1:
-	printf("Conversion en image indexée + dispersion d'erreur de Floyd-Steinberg\n");
-	if(floydSteinberg_pal_image(pali, img) == -1) {
-	    fprintf(stderr, "Conversion error\n");
+    } else {
+	if(indexingImageWithLessThan256Colors(pali, img) == -1) {
+	    fprintf(stderr, "This image contains too many colors\n");
+	    fprintf(stderr, "Please choose a static or dynamic palette\n");
+	    free_image(img);
+	    free_pal_image(pali);
 	    return 1;
 	}
-	break;
-    case 2:
-	printf("Conversion en image indexée + dispersion d'erreur d'Atkinson\n");
-	if(atkinson_pal_image(pali, img) == -1) {
-	    fprintf(stderr, "Conversion error\n");
-	    return 1;
-	}
-	break;
-    case 3:
-	printf("Conversion en image indexée + tramage ordonné\n");
-	if(ordered_pal_image(pali, img) == -1) {
-	    fprintf(stderr, "Conversion error\n");
-	    return 1;
-	}
-	break;
-    default:
-	fprintf(stderr, "Invalid argd\n");
-	return 1;
     }
     
     //écriture de l'image générée
     if(argv[optind + 1] == NULL) {
         rc = write_pal_png("./output.png", pali);
 	if(rc < 0) {
-	    fprintf(stderr, "Couldn't write ./output.png.\n");
+	    fprintf(stderr, "Couldn't write ./output.png\n");
+	    free_image(img);
+	    free_pal_image(pali);
 	    return 1;
 	}
-    }
-    else {
+    } else {
 	rc = write_pal_png(argv[optind + 1], pali);
 	if(rc < 0) {
 	    fprintf(stderr, "Couldn't write %s.\n", argv[optind + 1]);
+	    free_image(img);
+	    free_pal_image(pali);
 	    return 1;
 	}
     }
@@ -236,5 +255,23 @@ main(int argc, char **argv)
     }
 
     return 0;
+}
+
+void usage(FILE *f, char **argv) {
+    fprintf(f, "Usage: %s [OPTIONS] SOURCE DEST\n", argv[0]);
+    fprintf(f, "Compress Portable Network Graphics (PNG) SOURCE to DEST\n");
+    fprintf(f, "\nExamples:\n");
+    fprintf(f, "  ./compresspng -p 252 image.png                      # Compress an image into an indexed image with a static palette of 252 colors named \"output.png\"\n");
+    fprintf(f, "  ./compresspng -p 8 image.png image_saturated.png    # Compress an image into an indexed image with a static palette of 8 colors named \"image_saturated.png\"\n");
+    fprintf(f, "\nOptions:\n");
+    fprintf(f, "  -p [ARG]                   choose the size of the static palette : ARG = {2,8,16,64,216,252,256}\n");
+    fprintf(f, "  -P [ARG]                   choose the size of the dynamic palette (default : median cut) : ARG = multiple of 2 <= 256\n");
+    fprintf(f, "  -d [ARG]                   choose the algorithm of dithering/error diffusion : ARG = (1) Floyd-Steinberg, (2) Atkinson, (3) ordered\n");
+    fprintf(f, "                             \n");
+    fprintf(f, "  -h [ARG]                   choose the height of the new image (in pixels)\n");
+    fprintf(f, "  -w [ARG]                   choose the width of the new image (in pixels)\n");
+    fprintf(f, "  -f                         \"fast\" : to associated with the 'P' option to get the \"most common colors\" dynamic palette algorithm\n");
+    fprintf(f, "  -x                         open the new image in Eye of Gnome (Ubuntu's default image viewer)\n\n");
+    fprintf(f, "Louise Lemaire & Benoît Montazeaud\n");
 }
 

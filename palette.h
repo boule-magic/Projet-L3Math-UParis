@@ -3,17 +3,18 @@
 
 #include "pngio.h"
 
-void pal_8(struct pal_image* pali); //definition d'une palette de 8 couleurs (saturation)
-void pal_16(struct pal_image* pali);
-void pal_64(struct pal_image* pali);
-void pal_216(struct pal_image* pali);
-void pal_252(struct pal_image* pali);
-void pal_2(struct pal_image* pali);
-void pal_256(struct pal_image* pali);
-void palette_dynamique ( struct pal_image *final , struct image *initial , int n ) ;
-void palette_dynamique_median_cut(struct image* initial, struct pal_image* final, int palette_len);
+int indexingImageWithLessThan256Colors (struct pal_image* pali, const struct image* img);
 
-unsigned char findClosestColorFromPalette(const unsigned char* originalPixel, const unsigned char* palette, const int pal_len);
-int normeEuclidienne(const unsigned char* C1, const unsigned char* C2);
+void pal_8 (struct pal_image* pali); //definition d'une palette de 8 couleurs (saturation)
+void pal_16 (struct pal_image* pali);
+void pal_64 (struct pal_image* pali);
+void pal_216 (struct pal_image* pali);
+void pal_252 (struct pal_image* pali);
+void pal_2 (struct pal_image* pali);
+void pal_256 (struct pal_image* pali);
+void palette_dynamique (struct pal_image *final, const struct image *initial, int n ) ;
+void palette_dynamique_median_cut (struct pal_image* final, const struct image* initial, int palette_len);
+
+unsigned char findClosestColorFromPalette(const unsigned char* originalPixel, const struct pal_image* pali);
 
 #endif

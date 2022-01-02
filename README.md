@@ -2,6 +2,18 @@
 
 Il s'agit d'un petit programme de compression d'image qui réduit une image PNG en une image PNG à palette de couleur choisi. Pour un meilleur rendu il se sert des algorithmes de diffusion d'erreur de Floyd-Steinberg, d'Atkinson et ordonné. Il peut également modifier la taille de l'image par ré-échantillonnage bilinéaire.
 
+| image | result | static/dynamic | colors | dithering |
+| --- | --- | --- | --- | --- |
+| source |  ![aardvark.png](samples/aardvark.png) | | | |
+| blanck & white |  ![sample_static_2.png](samples/sample_static_2.png) | no | 2 | no |
+| blanck & white |  ![sample_static_2_atkinson.png](samples/sample_static_2_atkinson.png) | no | 2 | atkinson |
+| saturated |  ![sample_static_8.png](samples/sample_static_8.png) | no | 8 | no |
+| saturated |  ![sample_static_8_atkinson.png](samples/sample_static_8_atkinson.png) | no | 8 | atkinson |
+| 252 colors |  ![sample_static_252.png](samples/sample_static_252.png) | no | 252 | no |
+| 252 colors  |  ![sample_static_252_atkinson.png](samples/sample_static_252_atkinson.png) | no | 256 | atkinson
+| 2 colors  |  ![sample_dynamic_2.png](samples/sample_dynamic_2.png) | yes | 2 | no |
+| 256 colors  |  ![sample_dynamic_256.png](samples/sample_dynamic_256.png) | yes | 256 | no |
+
 ## Compilation
 #### Setup : 
 ```
@@ -11,16 +23,15 @@ sudo apt install gcc make
 ```
 make
 ```
-ou
-```
-make release
-```
 ## Tester
 ```
 make dithering
 ```
 ```
 make scaling
+```
+```
+make dynamic
 ```
 ## Exécution par défaut (équivalent) : 
 ```
@@ -49,9 +60,9 @@ make scaling
   * 3 : Ordonnée 
 #### Exemple d'utilisation d'options :
 ```
-./a.out img/taric.png -p 252 -d 2 -h 800 -x
+./compresspng img/taric.png -p 252 -d 2 -h 800 -x
 ```
-## Convertir des .jpg en .png (writergba)
+## Writergba : Convertir des images au format lisible par compresspng (.png en rgba)
 #### Le rendre exécutable :
 ```
 sudo chmod +x ./writergba

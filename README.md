@@ -33,6 +33,10 @@ make scaling
 ```
 make dynamic
 ```
+## Help
+```
+./compresspng
+```
 ## Exécution par défaut (équivalent) : 
 ```
 ./compresspng img/taric.png

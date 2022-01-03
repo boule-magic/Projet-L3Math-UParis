@@ -25,6 +25,9 @@ make
 ```
 ## Tester
 ```
+make samples
+```
+```
 make dithering
 ```
 ```
@@ -43,12 +46,13 @@ make dynamic
 ./compresspng img/taric.png img/output.png
 ```
 ## Options :
- * p : Choix de la palette de couleurs
- * P : Choix de la taille de la palette de couleur dynamique
- * d : Choix de l'algorithme de diffusion d'erreur
- * h : Choix de la hauteur de l'image de sortie (en pixel)
- * w : Choix de la largeur de l'image de sortie (en pixel)
- * x : Ouverture de l'image dans la visionneuse d'image par défault d'ubuntu (Eye of Gnome)
+ * p \[ARG\] : Choix de la taille de la palette de couleurs statique
+ * P \[ARG\] : Choix de la taille de la palette de couleur dynamique (median cut par defaut)
+ * f         : Permet de changer le mode de génération de palette dynamique en mode "fast" (histogramme)
+ * d \[ARG\] : Choix de l'algorithme de diffusion d'erreur
+ * h \[ARG\] : Choix de la hauteur de l'image de sortie (en pixel)
+ * w \[ARG\] : Choix de la largeur de l'image de sortie (en pixel)
+ * x \[ARG\] : Ouverture de l'image dans la visionneuse d'image par défault d'ubuntu (Eye of Gnome)
 #### Arguments de l'options "-p" :
   * 2 : Palette de 2 couleurs : noir et blanc
   * 8 : Palette de 8 couleurs : saturation

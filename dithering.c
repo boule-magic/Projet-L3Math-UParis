@@ -50,30 +50,34 @@ const	int	BAYER_16X16[16][16]	=	{	//	16x16 Bayer Dithering Matrix.  Color levels
 
 int
 naive_pal_image(struct pal_image* pali, const struct image* img) {
-    int exist;
-    if(pali->pal_len == -1 || pali->pal == NULL) {
+    int index;
+    if(pali->pal != NULL) {
+	for(int i = 0; i < img->height; i++) {
+	    for(int j = 0; j < img->width; j++) {					
+		pali->data[i][j] = findClosestColorFromPalette(&img->data[i][j*4], pali);
+	    }
+	}
+    } else {
 	pali->pal = calloc(3*256, 3*256*sizeof(unsigned char));
 	pali->pal_len = 0;
 	for(int i = 0; i < img->height; i++) {
 	    for(int j = 0; j < img->width; j++) {
-		exist = findClosestColorFromPalette(&img->data[i][j*4], pali);
-		if(exist == -1 && pali->pal_len < 256) {
+		index = findColorFromPalette(&img->data[i][j*4], pali);
+		if (index != -1) {
+		    pali->data[i][j] = index;
+		} else if (pali->pal_len < 256) {
 		    pali->pal_len++;
 		    pali->pal[pali->pal_len*3-3] = img->data[i][j*4];
 		    pali->pal[pali->pal_len*3-2] = img->data[i][j*4+1];
 		    pali->pal[pali->pal_len*3-1] = img->data[i][j*4+2];
 		    pali->data[i][j] = pali->pal_len-1;
-		} else if (exist == -1 && pali->pal_len >= 256) {
-			free( pali->pal ) ;
-			pali->pal_len = -1 ;
+		} else {
+		    fprintf(stderr, "Too many colors.\n");
+		    fprintf(stderr, "You should choose a static/dynamic palette\n");
+		    pali->pal_len = 0 ;
 		    return -1;
 		}
-	    }
-	}
-    } else {
-	for(int i = 0; i < img->height; i++) {
-	    for(int j = 0; j < img->width; j++) {					
-		pali->data[i][j] = findClosestColorFromPalette(&img->data[i][j*4], pali);
+		
 	    }
 	}
     }

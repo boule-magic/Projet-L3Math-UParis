@@ -100,7 +100,7 @@ main(int argc, char **argv)
     }
 
     //création de la palette de couleur
-    if(argp != 0 || argP != 0) {
+    /* if(argp != 0 || argP != 0) { */
 	switch(argp) {
 	case 8:
 	    printf("Palette de 8 couleurs : saturation\n");
@@ -141,6 +141,9 @@ main(int argc, char **argv)
 	    } else if (argP > 0 && argf == 1) {
 		printf("Palette dynamique de %d couleurs : couleurs les plus présentes\n", argP);
 		palette_dynamique( pali , img , argP );
+	    } else if (argP == 0) {
+		printf("Palette de 256 couleurs maximum\n");
+		printf("(ne fonctionne que sur les images de moins de 256 couleurs)\n");
 	    } else {
 		fprintf(stderr, "Bad argument\n");
 		return 1;
@@ -204,15 +207,15 @@ main(int argc, char **argv)
 	    free_pal_image(pali);
 	    return 1;
 	}
-    } else {
-	if(indexingImageWithLessThan256Colors(pali, img) == -1) {
-	    fprintf(stderr, "This image contains too many colors\n");
-	    fprintf(stderr, "Please choose a static or dynamic palette\n");
-	    free_image(img);
-	    free_pal_image(pali);
-	    return 1;
-	}
-    }
+    /* } else { */
+    /* 	if(indexingImageWithLessThan256Colors(pali, img) == -1) { */
+    /* 	    fprintf(stderr, "This image contains too many colors\n"); */
+    /* 	    fprintf(stderr, "Please choose a static or dynamic palette\n"); */
+    /* 	    free_image(img); */
+    /* 	    free_pal_image(pali); */
+    /* 	    return 1; */
+    /* 	} */
+    /* } */
     
     //écriture de l'image générée
     if(argv[optind + 1] == NULL) {

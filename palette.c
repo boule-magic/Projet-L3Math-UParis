@@ -39,39 +39,39 @@ int normeEuclidienne(const unsigned char* C1, const unsigned char* C2); // renvo
 unsigned char* colors_tab_from_image(const struct image* img);
 unsigned char max(unsigned char c1, unsigned char c2);
 
-int
-indexingImageWithLessThan256Colors(struct pal_image* pali, const struct image* img) {
-    if(pali->pal != NULL) {
-        free(pali->pal);
-    }
-    pali->pal = malloc(3*256*sizeof(unsigned char));
-    pali->pal_len = 0;
-    for(int i = 0 ; i < img->height ; i++) {
-	for(int j = 0 ; j < img->width ; j++) {
-	    int k = 0;
-	    for(k = 0 ; k < pali->pal_len ; k++) {
-		if(img->data[i][j*4+0] == pali->pal[k*3+0] &&
-		   img->data[i][j*4+1] == pali->pal[k*3+1] &&
-		   img->data[i][j*4+2] == pali->pal[k*3+2]
-		   ) {
-		    pali->data[i][j] = k;
-		    break;
-		}
-	    }
-	    if(k > 255) {
-		pali->pal_len = -1;
-		return -1;
-	    } else if(k == pali->pal_len) {
-		pali->pal_len++;
-		pali->pal[k*3+0] = img->data[i][j*4+0];
-		pali->pal[k*3+1] = img->data[i][j*4+1];
-		pali->pal[k*3+2] = img->data[i][j*4+2];
-		pali->data[i][j] = k;
-	    }
-	}
-    }
-    return 1;
-}
+/* int */
+/* indexingImageWithLessThan256Colors(struct pal_image* pali, const struct image* img) { */
+/*     if(pali->pal != NULL) { */
+/*         free(pali->pal); */
+/*     } */
+/*     pali->pal = malloc(3*256*sizeof(unsigned char)); */
+/*     pali->pal_len = 0; */
+/*     for(int i = 0 ; i < img->height ; i++) { */
+/* 	for(int j = 0 ; j < img->width ; j++) { */
+/* 	    int k = 0; */
+/* 	    for(k = 0 ; k < pali->pal_len ; k++) { */
+/* 		if(img->data[i][j*4+0] == pali->pal[k*3+0] && */
+/* 		   img->data[i][j*4+1] == pali->pal[k*3+1] && */
+/* 		   img->data[i][j*4+2] == pali->pal[k*3+2] */
+/* 		   ) { */
+/* 		    pali->data[i][j] = k; */
+/* 		    break; */
+/* 		} */
+/* 	    } */
+/* 	    if(k > 255) { */
+/* 		pali->pal_len = -1; */
+/* 		return -1; */
+/* 	    } else if(k == pali->pal_len) { */
+/* 		pali->pal_len++; */
+/* 		pali->pal[k*3+0] = img->data[i][j*4+0]; */
+/* 		pali->pal[k*3+1] = img->data[i][j*4+1]; */
+/* 		pali->pal[k*3+2] = img->data[i][j*4+2]; */
+/* 		pali->data[i][j] = k; */
+/* 	    } */
+/* 	} */
+/*     } */
+/*     return 1; */
+/* } */
 
 void
 pal_8(struct pal_image* pali) {
@@ -246,13 +246,26 @@ palette_dynamique_median_cut (struct pal_image* final, const struct image* initi
     return 1;
 }
 
-unsigned char
-findClosestColorFromPalette(const unsigned char* originalPixel, const struct pal_image* pali) {
+int
+findColorFromPalette(unsigned char color[3], struct pal_image* pali) {
+    int k = 0;
+    for(k = 0 ; k < pali->pal_len ; k++) {
+	if (color[0] == pali->pal[k*3+0] &&
+	    color[1] == pali->pal[k*3+1] &&
+	    color[2] == pali->pal[k*3+2]) {
+	    return k;
+	}
+    }
+    return -1;
+}
+
+int
+findClosestColorFromPalette(const unsigned char color[3], const struct pal_image* pali) {
     if (pali->pal_len <= 0) return -1;
-    int minimal = normeEuclidienne(originalPixel, pali->pal), current = 0;
-    unsigned char index = 0;
+    int minimal = normeEuclidienne(color, pali->pal), current = 0;
+    int index = 0;
     for(int k = 0; k < pali->pal_len; k++) {
-	current = normeEuclidienne(originalPixel, &pali->pal[k*3]);
+	current = normeEuclidienne(color, &pali->pal[k*3]);
 	if(current <= minimal) {
 	    index = k;
 	    minimal = current;

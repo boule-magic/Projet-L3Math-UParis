@@ -232,20 +232,25 @@ palette_dynamique ( struct pal_image *final , const struct image *initial , int 
     free_tree(abr);
 }
 
-void
+int
 palette_dynamique_median_cut (struct pal_image* final, const struct image* initial, int palette_len ) {
     final->pal = malloc(palette_len*3*sizeof(unsigned char));
     final->pal_len = 0;
     unsigned char* colors = colors_tab_from_image(initial);
+    if (colors == NULL) {
+	fprintf(stderr, "Couldn't allocate an array of %d colors", initial->height*initial->width);
+	return -1;
+    }
     bucket(palette_len, final, colors, 0, initial->height*initial->width-1);
     free(colors);
+    return 1;
 }
 
 unsigned char
 findClosestColorFromPalette(const unsigned char* originalPixel, const struct pal_image* pali) {
     if (pali->pal_len <= 0) return -1;
     int minimal = normeEuclidienne(originalPixel, pali->pal), current = 0;
-    unsigned char index = -1;
+    unsigned char index = 0;
     for(int k = 0; k < pali->pal_len; k++) {
 	current = normeEuclidienne(originalPixel, &pali->pal[k*3]);
 	if(current <= minimal) {

@@ -13,7 +13,7 @@ void pal_252 (struct pal_image* pali);
 void pal_2 (struct pal_image* pali);
 void pal_256 (struct pal_image* pali);
 void palette_dynamique (struct pal_image *final, const struct image *initial, int n ) ;
-void palette_dynamique_median_cut (struct pal_image* final, const struct image* initial, int palette_len);
+int palette_dynamique_median_cut (struct pal_image* final, const struct image* initial, int palette_len);
 
 unsigned char findClosestColorFromPalette(const unsigned char* originalPixel, const struct pal_image* pali);
 

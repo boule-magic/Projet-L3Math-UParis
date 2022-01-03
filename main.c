@@ -133,8 +133,13 @@ main(int argc, char **argv)
 	case 0:
 	    if (argP > 0 && argf == 0) {
 		printf("Palette dynamique de %d couleurs : median cut\n", argP);
-		palette_dynamique_median_cut(pali, img, argP);
+		if (palette_dynamique_median_cut(pali, img, argP) == -1) {
+		    free_image(img);
+		    free_pal_image(pali);
+		    return 1;
+		}
 	    } else if (argP > 0 && argf == 1) {
+		printf("Palette dynamique de %d couleurs : couleurs les plus présentes\n", argP);
 		palette_dynamique( pali , img , argP );
 	    } else {
 		fprintf(stderr, "Bad argument\n");

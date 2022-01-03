@@ -25,6 +25,9 @@ make
 ```
 ## Tester
 ```
+make samples
+```
+```
 make dithering
 ```
 ```

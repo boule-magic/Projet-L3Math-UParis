@@ -4,15 +4,15 @@ Il s'agit d'un petit programme de compression d'image qui réduit une image PNG 
 
 | image | result | static/dynamic | colors | dithering |
 | --- | --- | --- | --- | --- |
-| source |  ![aardvark.png](samples/aardvark.png) | | | |
-| blanck & white |  ![sample_static_2.png](samples/sample_static_2.png) | no | 2 | no |
-| blanck & white |  ![sample_static_2_atkinson.png](samples/sample_static_2_atkinson.png) | no | 2 | atkinson |
-| saturated |  ![sample_static_8.png](samples/sample_static_8.png) | no | 8 | no |
-| saturated |  ![sample_static_8_atkinson.png](samples/sample_static_8_atkinson.png) | no | 8 | atkinson |
-| 252 colors |  ![sample_static_252.png](samples/sample_static_252.png) | no | 252 | no |
-| 252 colors  |  ![sample_static_252_atkinson.png](samples/sample_static_252_atkinson.png) | no | 256 | atkinson
-| 2 colors  |  ![sample_dynamic_2.png](samples/sample_dynamic_2.png) | yes | 2 | no |
-| 256 colors  |  ![sample_dynamic_256.png](samples/sample_dynamic_256.png) | yes | 256 | no |
+| source |  <img src="samples/aardvark.png" alt="aardvark" width="300"/> | | | |
+| blanck & white |  <img src="samples/sample_static_2.png" alt="aardvark" width="300"/> | no | 2 | no |
+| blanck & white |  <img src="samples/sample_static_2_atkinson.png" alt="aardvark" width="300"/> | no | 2 | atkinson |
+| saturated |  <img src="samples/sample_static_8.png" alt="aardvark" width="300"/> | no | 8 | no |
+| saturated |  <img src="samples/sample_static_8_atkinson.png" alt="aardvark" width="300"/> | no | 8 | atkinson |
+| 252 colors |  <img src="samples/sample_static_252.png" alt="aardvark" width="300"/> | no | 252 | no |
+| 252 colors  |  <img src="samples/sample_static_252_atkinson.png" alt="aardvark" width="300"/> | no | 256 | atkinson
+| 2 colors  |  <img src="samples/sample_dynamic_2.png" alt="aardvark" width="300"/> | yes | 2 | no |
+| 256 colors  |  <img src="samples/sample_dynamic_256.png" alt="aardvark" width="300"/> | yes | 256 | no |
 
 ## Compilation
 #### Setup : 
@@ -46,13 +46,13 @@ make dynamic
 ./compresspng img/taric.png img/output.png
 ```
 ## Options :
- * p \[ARG\] : Choix de la taille de la palette de couleurs statique
- * P \[ARG\] : Choix de la taille de la palette de couleur dynamique (median cut par defaut)
+ * p \[arg\] : Choix de la taille de la palette de couleurs statique
+ * P \[arg\] : Choix de la taille de la palette de couleur dynamique (median cut par defaut)
  * f         : Permet de changer le mode de génération de palette dynamique en mode "fast" (histogramme)
- * d \[ARG\] : Choix de l'algorithme de diffusion d'erreur
- * h \[ARG\] : Choix de la hauteur de l'image de sortie (en pixel)
- * w \[ARG\] : Choix de la largeur de l'image de sortie (en pixel)
- * x \[ARG\] : Ouverture de l'image dans la visionneuse d'image par défault d'ubuntu (Eye of Gnome)
+ * d \[arg\] : Choix de l'algorithme de diffusion d'erreur
+ * h \[arg\] : Choix de la hauteur de l'image de sortie (en pixel)
+ * w \[arg\] : Choix de la largeur de l'image de sortie (en pixel)
+ * x \[arg\] : Ouverture de l'image dans la visionneuse d'image par défault d'ubuntu (Eye of Gnome)
 #### Arguments de l'options "-p" :
   * 2 : Palette de 2 couleurs : noir et blanc
   * 8 : Palette de 8 couleurs : saturation

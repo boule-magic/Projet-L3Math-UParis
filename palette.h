@@ -3,15 +3,24 @@
 
 #include "pngio.h"
 
-//int indexingImageWithLessThan256Colors (struct pal_image* pali, const struct image* img);
+struct nb_couleur {
+    int nb; // pondération (nombre de pixels de cette couleur présent dans l'image)
+    unsigned char ucr, ucv, ucb; // (r,g,b)
+} ;
 
-void pal_8 (struct pal_image* pali); //definition d'une palette de 8 couleurs (saturation)
-void pal_16 (struct pal_image* pali);
-void pal_64 (struct pal_image* pali);
-void pal_216 (struct pal_image* pali);
-void pal_252 (struct pal_image* pali);
-void pal_2 (struct pal_image* pali);
-void pal_256 (struct pal_image* pali);
+struct node {
+    struct nb_couleur nc ;
+    struct node *left ;
+    struct node *right ;
+} ;
+
+void palette_8 (struct pal_image* pali); //definition d'une palette de 8 couleurs (saturation)
+void palette_16 (struct pal_image* pali);
+void palette_64 (struct pal_image* pali);
+void palette_216 (struct pal_image* pali);
+void palette_252 (struct pal_image* pali);
+void palette_2 (struct pal_image* pali);
+void palette_256 (struct pal_image* pali);
 void palette_dynamique (struct pal_image *final, const struct image *initial, int n ) ;
 int palette_dynamique_median_cut (struct pal_image* final, const struct image* initial, int palette_len);
 

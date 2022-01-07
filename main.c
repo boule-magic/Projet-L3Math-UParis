@@ -8,6 +8,20 @@
 #include "scaling.h"
 
 void usage(FILE *f, char **argv);
+void fast_automatic(struct pal_image* pali, struct image* img) {
+    printf("Conversion en image indexée\n");
+    if(naive_pal_image(pali, img) == -1) {
+	fprintf(stderr, "Conversion error\n");
+	free(pali->pal);
+	if(img->height*img->width < 500000) {
+	    palette_dynamique_median_cut(pali, img, 256);
+	    floydSteinberg_pal_image(pali, img);
+	} else {
+	    palette_252(pali);
+	    atkinson_pal_image(pali, img);
+	}
+    }
+}
 
 int
 main(int argc, char **argv)
@@ -15,7 +29,7 @@ main(int argc, char **argv)
     struct image* img;
     struct pal_image* pali;
     int rc;
-    int argp = 0, argd = 0, argx = 0, argw = 0, argh = 0, argP = 0, argf = 0 ;
+    int argp = 0, argd = 0, argx = 0, argw = 0, argh = 0, argP = 0, argf = 0, arpa = 0 ;
     
     //lecture des options
     while(1) {
@@ -100,122 +114,112 @@ main(int argc, char **argv)
     }
 
     //création de la palette de couleur
-    /* if(argp != 0 || argP != 0) { */
-	switch(argp) {
-	case 8:
-	    printf("Palette de 8 couleurs : saturation\n");
-	    pal_8(pali); //définition palette de 8 couleurs
-	    break;
-	case 16:
-	    printf("Palette de 16 couleurs : CGA\n");
-	    pal_16(pali);
-	    break;
-	case 64:
-	    printf("Palette de 64 couleurs : 4-4-4\n");
-	    pal_64(pali);
-	    break;
-	case 216:
-	    printf("Palette de 216 couleurs : 6-6-6\n");
-	    pal_216(pali);
-	    break;
-	case 252:
-	    printf("Palette de 252 couleurs : 6-7-6\n");
-	    pal_252(pali);
-	    break;
-	case 2:
-	    printf("Palette de 2 couleurs : noir et blanc\n");
-	    pal_2(pali);
-	    break;
-	case 256:
-	    printf("Palette de 256 couleurs : niveaux de gris\n");
-	    pal_256(pali);
-	    break;
-	case 0:
-	    if (argP > 0 && argf == 0) {
-		printf("Palette dynamique de %d couleurs : median cut\n", argP);
-		if (palette_dynamique_median_cut(pali, img, argP) == -1) {
-		    free_image(img);
-		    free_pal_image(pali);
-		    return 1;
-		}
-	    } else if (argP > 0 && argf == 1) {
-		printf("Palette dynamique de %d couleurs : couleurs les plus présentes\n", argP);
-		palette_dynamique( pali , img , argP );
-	    } else if (argP == 0) {
-		printf("Palette de 256 couleurs maximum\n");
-		printf("(ne fonctionne que sur les images de moins de 256 couleurs)\n");
-	    } else {
-		fprintf(stderr, "Bad argument\n");
+    switch(argp) {
+    case 8:
+	printf("Palette de 8 couleurs : saturation\n");
+	palette_8(pali); //définition palette de 8 couleurs
+	break;
+    case 16:
+	printf("Palette de 16 couleurs : CGA\n");
+	palette_16(pali);
+	break;
+    case 64:
+	printf("Palette de 64 couleurs : 4-4-4\n");
+	palette_64(pali);
+	break;
+    case 216:
+	printf("Palette de 216 couleurs : 6-6-6\n");
+	palette_216(pali);
+	break;
+    case 252:
+	printf("Palette de 252 couleurs : 6-7-6\n");
+	palette_252(pali);
+	break;
+    case 2:
+	printf("Palette de 2 couleurs : noir et blanc\n");
+	palette_2(pali);
+	break;
+    case 256:
+	printf("Palette de 256 couleurs : niveaux de gris\n");
+	palette_256(pali);
+	break;
+    case 0:
+	if (argP > 1 && argf == 0) {
+	    printf("Palette dynamique de %d couleurs : median cut\n", argP);
+	    if (palette_dynamique_median_cut(pali, img, argP) == -1) {
+		free_image(img);
+		free_pal_image(pali);
 		return 1;
 	    }
-	    break;
-	default:
-	    printf("The available palettes are :\n");
-	    printf("Colors :\n");
-	    printf("-p 8\n");
-	    printf("-p 16\n");
-	    printf("-p 64\n");
-	    printf("-p 216\n");
-	    printf("-p 252\n");
-	    printf("Black & white :\n");
-	    printf("-p 2\n");
-	    printf("-p 256\n");
+	} else if (argP > 1 && argf == 1) {
+	    printf("Palette dynamique de %d couleurs : couleurs les plus présentes\n", argP);
+	    palette_dynamique( pali , img , argP );
+	} else if (argP == 0) {
+	    printf("Palette de 256 couleurs maximum\n");
+	    printf("(ne fonctionne que sur les images de moins de 256 couleurs)\n");
+	} else {
+	    fprintf(stderr, "Bad argument\n");
 	    return 1;
 	}
+	break;
+    default:
+	printf("The available palettes are :\n");
+	printf("Colors :\n");
+	printf("-p 8\n");
+	printf("-p 16\n");
+	printf("-p 64\n");
+	printf("-p 216\n");
+	printf("-p 252\n");
+	printf("Black & white :\n");
+	printf("-p 2\n");
+	printf("-p 256\n");
+	return 1;
+    }
 
-	///création de l'image indexée
-	switch(argd) {
-	case 0:
-	    printf("Conversion en image indexée\n");
-	    if(naive_pal_image(pali, img) == -1) {
-		fprintf(stderr, "Conversion error\n");
-		free_image(img);
-		free_pal_image(pali);
-		return 1;
-	    }
-	    break;
-	case 1:
-	    printf("Conversion en image indexée + dispersion d'erreur de Floyd-Steinberg\n");
-	    if(floydSteinberg_pal_image(pali, img) == -1) {
-		fprintf(stderr, "Conversion error\n");
-		free_image(img);
-		free_pal_image(pali);
-		return 1;
-	    }
-	    break;
-	case 2:
-	    printf("Conversion en image indexée + dispersion d'erreur d'Atkinson\n");
-	    if(atkinson_pal_image(pali, img) == -1) {
-		fprintf(stderr, "Conversion error\n");
-		free_image(img);
-		free_pal_image(pali);
-		return 1;
-	    }
-	    break;
-	case 3:
-	    printf("Conversion en image indexée + tramage ordonné\n");
-	    if(ordered_pal_image(pali, img) == -1) {
-		fprintf(stderr, "Conversion error\n");
-		free_image(img);
-		free_pal_image(pali);
-		return 1;
-	    }
-	    break;
-	default:
-	    fprintf(stderr, "Invalid argument of option d\n");
+    ///création de l'image indexée
+    switch(argd) {
+    case 0:
+	printf("Conversion en image indexée\n");
+	if(naive_pal_image(pali, img) == -1) {
+	    fprintf(stderr, "Conversion error\n");
 	    free_image(img);
 	    free_pal_image(pali);
 	    return 1;
 	}
-    /* } else { */
-    /* 	if(indexingImageWithLessThan256Colors(pali, img) == -1) { */
-    /* 	    fprintf(stderr, "This image contains too many colors\n"); */
-    /* 	    fprintf(stderr, "Please choose a static or dynamic palette\n"); */
-    /* 	    free_image(img); */
-    /* 	    free_pal_image(pali); */
-    /* 	    return 1; */
-    /* 	} */
-    /* } */
+	break;
+    case 1:
+	printf("Conversion en image indexée + dispersion d'erreur de Floyd-Steinberg\n");
+	if(floydSteinberg_pal_image(pali, img) == -1) {
+	    fprintf(stderr, "Conversion error\n");
+	    free_image(img);
+	    free_pal_image(pali);
+	    return 1;
+	}
+	break;
+    case 2:
+	printf("Conversion en image indexée + dispersion d'erreur d'Atkinson\n");
+	if(atkinson_pal_image(pali, img) == -1) {
+	    fprintf(stderr, "Conversion error\n");
+	    free_image(img);
+	    free_pal_image(pali);
+	    return 1;
+	}
+	break;
+    case 3:
+	printf("Conversion en image indexée + tramage ordonné\n");
+	if(ordered_pal_image(pali, img) == -1) {
+	    fprintf(stderr, "Conversion error\n");
+	    free_image(img);
+	    free_pal_image(pali);
+	    return 1;
+	}
+	break;
+    default:
+	fprintf(stderr, "Invalid argument of option d\n");
+	free_image(img);
+	free_pal_image(pali);
+	return 1;
+    }
     
     //écriture de l'image générée
     if(argv[optind + 1] == NULL) {

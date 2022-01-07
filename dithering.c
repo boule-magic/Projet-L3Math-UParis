@@ -109,7 +109,7 @@ floydSteinberg_pal_image(struct pal_image* pali, struct image* img) {
 	    if(j+1 < img->width) errorApplication(&img->data[i][j*4+4], errorPixel, 7.0/16); //pixel est
 	    if(i+1 < img->height && j-1 >= 0) errorApplication(&img->data[i+1][j*4-4], errorPixel, 3.0/16); //pixel sud-ouest
 	    if(i+1 < img->height) errorApplication(&img->data[i+1][j*4], errorPixel, 5.0/16); //pixel sud
-	    if(i+1 < img->height && j+1 < img->width) errorApplication(&img->data[i+1][j*4+4], errorPixel, 1.0/16);//pixel sud-est
+	    if(i+1 < img->height && j+1 < img->width) errorApplication(&img->data[i+1][j*4+4], errorPixel, 1.0/16); //pixel sud-est
 	}
     }
 

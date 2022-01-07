@@ -5,17 +5,6 @@
 
 #include "palette.h"
 
-struct nb_couleur {
-    int nb; // pondération (nombre de pixels de cette couleur présent dans l'image)
-    unsigned char ucr, ucv, ucb; // (r,g,b)
-} ;
-
-struct node {
-    struct nb_couleur nc ;
-    struct node *left ;
-    struct node *right ;
-} ;
-
 //// fonctions utilisées pour la palette dynamique des couleurs les plus présentes
 void free_tree ( struct node *n );
 struct node * mknode ( struct nb_couleur nc , struct node *left , struct node *right );
@@ -30,58 +19,25 @@ void average_color_calculator(unsigned char* colors, long int premier, long int 
 // fonctions du trie rapide ou trie pivot (C.A.R. Hoare, 1960/1961)
 // trie les couleurs d'un tableau entre l'indice "premier" et l'indice "dernier" (inclus) par rapport au r, g ou b en fonction de la valeur de color_reference (0, 1, 2)
 void quicksort(unsigned char* colors, long int premier, long int dernier, int color_reference);
-void color_swapping(unsigned char* c1, unsigned char* c2);
+void color_swapping(unsigned char c1[3], unsigned char c2[3]);
 long int choix_pivot(unsigned char* colors, long int premier, long int dernier);
-long int partitionner(unsigned char* colors, long int premier, long int dernier, long int pivot, int color_reference); // comparer les couleurs et les échanges si nécessaire, renvoie l'indice "pivot" : toutes les couleurs "à sa gauche" lui sont inférieures et toutes celles "à sa droite" lui sont supérieures 
+long int partitionner(unsigned char* colors, long int premier, long int dernier, long int pivot, int color_reference); // comparer les couleurs et les échanges si nécessaire, renvoie l'indice "pivot" : toutes les couleurs "à sa gauche" lui sont inférieures et toutes celles "à sa droite" lui sont supérieures
+void bubblesort(unsigned char* colors, long int premier, long int dernier, int color_reference);
 
 // Fonctions utiles
 int normeEuclidienne(const unsigned char* C1, const unsigned char* C2); // renvoie la norme euclidienne au carrée (donc pas une norme en réalité)
 unsigned char* colors_tab_from_image(const struct image* img);
 unsigned char max(unsigned char c1, unsigned char c2);
 
-/* int */
-/* indexingImageWithLessThan256Colors(struct pal_image* pali, const struct image* img) { */
-/*     if(pali->pal != NULL) { */
-/*         free(pali->pal); */
-/*     } */
-/*     pali->pal = malloc(3*256*sizeof(unsigned char)); */
-/*     pali->pal_len = 0; */
-/*     for(int i = 0 ; i < img->height ; i++) { */
-/* 	for(int j = 0 ; j < img->width ; j++) { */
-/* 	    int k = 0; */
-/* 	    for(k = 0 ; k < pali->pal_len ; k++) { */
-/* 		if(img->data[i][j*4+0] == pali->pal[k*3+0] && */
-/* 		   img->data[i][j*4+1] == pali->pal[k*3+1] && */
-/* 		   img->data[i][j*4+2] == pali->pal[k*3+2] */
-/* 		   ) { */
-/* 		    pali->data[i][j] = k; */
-/* 		    break; */
-/* 		} */
-/* 	    } */
-/* 	    if(k > 255) { */
-/* 		pali->pal_len = -1; */
-/* 		return -1; */
-/* 	    } else if(k == pali->pal_len) { */
-/* 		pali->pal_len++; */
-/* 		pali->pal[k*3+0] = img->data[i][j*4+0]; */
-/* 		pali->pal[k*3+1] = img->data[i][j*4+1]; */
-/* 		pali->pal[k*3+2] = img->data[i][j*4+2]; */
-/* 		pali->data[i][j] = k; */
-/* 	    } */
-/* 	} */
-/*     } */
-/*     return 1; */
-/* } */
-
 void
-pal_8(struct pal_image* pali) {
+palette_8(struct pal_image* pali) {
     if(pali->pal != NULL) free(pali->pal);
     pali->pal = malloc(8*3*sizeof(unsigned char));
     pali->pal_len = 8;
     for(int i = 0 ; i <= 1 ; i++) {
         for(int j = 0 ; j <= 1 ; j++) {
 	    for(int k = 0 ; k <= 1 ; k++) {
-		pali->pal[(i*4+j*2+k)*3] = 255*i;
+		pali->pal[(i*4+j*2+k)*3] = 255*i; // Un compteur aurait suffit
 		pali->pal[(i*4+j*2+k)*3+1] = 255*j;
 		pali->pal[(i*4+j*2+k)*3+2] = 255*k;
 	    }
@@ -90,7 +46,7 @@ pal_8(struct pal_image* pali) {
 }
 
 void
-pal_16(struct pal_image* pali) {
+palette_16(struct pal_image* pali) {
     if(pali->pal != NULL) free(pali->pal);
     pali->pal = malloc(16*3*sizeof(unsigned char));
     pali->pal_len = 16;
@@ -115,7 +71,7 @@ pal_16(struct pal_image* pali) {
 }
 
 void
-pal_64(struct pal_image* pali) {
+palette_64(struct pal_image* pali) {
     if(pali->pal != NULL) free(pali->pal);
     pali->pal = malloc(64*3*sizeof(unsigned char));
     pali->pal_len = 64;
@@ -131,7 +87,7 @@ pal_64(struct pal_image* pali) {
 }
 
 void
-pal_216(struct pal_image* pali) {
+palette_216(struct pal_image* pali) {
     if(pali->pal != NULL) free(pali->pal);
     pali->pal = malloc(216*3*sizeof(unsigned char));
     pali->pal_len = 216;
@@ -147,7 +103,7 @@ pal_216(struct pal_image* pali) {
 }
 
 void
-pal_252(struct pal_image* pali) {
+palette_252(struct pal_image* pali) {
     if(pali->pal != NULL) free(pali->pal);
     pali->pal = malloc(252*3*sizeof(unsigned char));
     pali->pal_len = 252;
@@ -170,7 +126,7 @@ pal_252(struct pal_image* pali) {
 }
 
 void
-pal_2(struct pal_image* pali) {
+palette_2(struct pal_image* pali) {
     if(pali->pal != NULL) free(pali->pal);
     pali->pal = malloc(2*3*sizeof(unsigned char));
     pali->pal_len = 2;
@@ -182,7 +138,7 @@ pal_2(struct pal_image* pali) {
 }
 
 void
-pal_256(struct pal_image* pali) {
+palette_256(struct pal_image* pali) {
     if(pali->pal != NULL) free(pali->pal);
     pali->pal = malloc(256*3*sizeof(unsigned char));
     pali->pal_len = 256;
@@ -423,6 +379,7 @@ theOneWithTheMostAmplitude(unsigned char* colors, long int premier, long int der
     r_amplitude = r_max - r_min;
     g_amplitude = g_max - g_min;
     b_amplitude = b_max - b_min;
+    //printf("(%d,%d,%d)\n", r_amplitude, g_amplitude, b_amplitude);
 
     max_amplitude = max(r_amplitude, max(g_amplitude, b_amplitude));
 
@@ -449,6 +406,21 @@ average_color_calculator(unsigned char* colors, long int premier, long int derni
     average_color[2] = (unsigned char)average_b;
 }
 
+void bubblesort(unsigned char* colors, long int premier, long int dernier, int color_reference) {
+    int already_sorted = 1;
+    for (long int i = dernier ; i > premier ; i--) {
+	for (long int j = premier ; j < i ; j++) {
+	    if (colors[(j+1)*3+color_reference] < colors[j*3+color_reference]) {
+		color_swapping(&colors[j*3], &colors[(j+1)*3]);
+		already_sorted = 0;
+	    }
+	}
+	if (already_sorted == 1) {
+	    return;
+	}
+    }
+}
+
 void
 quicksort(unsigned char* colors, long int premier, long int dernier, int color_reference) {
     long int pivot;
@@ -460,7 +432,8 @@ quicksort(unsigned char* colors, long int premier, long int dernier, int color_r
     }
 }
 
-void color_swapping(unsigned char* c1, unsigned char* c2) {
+void
+color_swapping(unsigned char c1[3], unsigned char c2[3]) {
     unsigned char r = c1[0];
     unsigned char g = c1[1];
     unsigned char b = c1[2];

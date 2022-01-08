@@ -3,11 +3,11 @@ EXEC=compresspng
 
 all: release
 
-release: main.c dithering.c palette.c scaling.c pngio.c
-	gcc -Wall main.c dithering.c palette.c scaling.c pngio.c -lpng -lm -O2 -o $(EXEC)
+release: main.c dithering.c palette.c scaling.c colorspace.c pngio.c
+	gcc -Wall main.c dithering.c palette.c scaling.c colorspace.c pngio.c -lpng -lm -O2 -o $(EXEC)
 
-debug: main.c dithering.c palette.c scaling.c pngio.c
-	gcc -Wall main.c dithering.c palette.c scaling.c pngio.c -lpng -lm -g -o $(EXEC)_debug
+debug: main.c dithering.c palette.c scaling.c colorspace.c pngio.c
+	gcc -Wall main.c dithering.c palette.c scaling.c colorspace.c pngio.c -lpng -lm -g -o $(EXEC)_debug
 
 samples: release $(IMG)
 	./$(EXEC) $(IMG) sample_static_2.png -p 2

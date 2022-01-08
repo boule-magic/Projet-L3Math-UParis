@@ -132,30 +132,37 @@ main(int argc, char **argv)
     case 8:
 	printf("Palette de 8 couleurs : saturation\n");
 	palette_8(pali); //définition palette de 8 couleurs
+	if(argl == 1) pal_image_rgb_to_lab ( pali ) ; 
 	break;
     case 16:
 	printf("Palette de 16 couleurs : CGA\n");
 	palette_16(pali);
+	if(argl == 1) pal_image_rgb_to_lab ( pali ) ; 
 	break;
     case 64:
 	printf("Palette de 64 couleurs : 4-4-4\n");
 	palette_64(pali);
+	if(argl == 1) pal_image_rgb_to_lab ( pali ) ; 
 	break;
     case 216:
 	printf("Palette de 216 couleurs : 6-6-6\n");
 	palette_216(pali);
+	if(argl == 1) pal_image_rgb_to_lab ( pali ) ; 
 	break;
     case 252:
 	printf("Palette de 252 couleurs : 6-7-6\n");
 	palette_252(pali);
+	if(argl == 1) pal_image_rgb_to_lab ( pali ) ; 
 	break;
     case 2:
 	printf("Palette de 2 couleurs : noir et blanc\n");
 	palette_2(pali);
+	if(argl == 1) pal_image_rgb_to_lab ( pali ) ; 
 	break;
     case 256:
 	printf("Palette de 256 couleurs : niveaux de gris\n");
 	palette_256(pali);
+	if(argl == 1) pal_image_rgb_to_lab ( pali ) ; 
 	break;
     case 0:
 	if (argP > 1 && argf == 0) {
@@ -233,6 +240,15 @@ main(int argc, char **argv)
 	free_image(img);
 	free_pal_image(pali);
 	return 1;
+    }
+
+    //changement de l'espace colorimétrique
+    if ( argl == 1 ) {
+	pal_image_lab_to_rgb ( pali ) ;
+    } else if ( argl == 2 ) {
+	//image_rgb_to_luv ( img ) ;
+    } else {
+	//fprintf(stderr , "-l : bad argument\n") ;
     }
     
     //écriture de l'image générée

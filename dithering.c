@@ -6,6 +6,24 @@
 #include "palette.h"
 #include "dithering.h"
 
+// trucs
+#ifndef MIN
+#define MIN(a,b)            (((a) < (b)) ? (a) : (b))
+#endif
+
+#ifndef MAX
+#define MAX(a,b)            (((a) > (b)) ? (a) : (b))
+#endif
+
+#ifndef	CLAMP
+//	This produces faster code without jumps
+#define		CLAMP( x, xmin, xmax )		(x)	= MAX( (xmin), (x) );	\
+										(x)	= MIN( (xmax), (x) )
+#define		CLAMPED( x, xmin, xmax )	MAX( (xmin), MIN( (xmax), (x) ) )
+#endif
+
+#define	GRAY( r,g,b )	(((r) + (g) + (b)) / 3)
+
 //int max_abs (int a , int b ) ;
 //int norme_a_la_puissance ( int num_norme , const struct image *initial , const struct pal_image *final , int k_pali , int i_data , int j_data ) ;
 void errorPixelCalcul(unsigned char* originalPixel, unsigned char* newPixel, int* errorPixel);
@@ -154,22 +172,63 @@ atkinson_pal_image(struct pal_image* pali, struct image* img) {
 
 
 int
-ordered_pal_image(struct pal_image* pali, const struct image* img) {
+ordered_pal_image_8(struct pal_image* pali, const struct image* img) {
     unsigned char pixel[3];
-    int  diff[3]; 
+    int  corr[3];
+    //int  ncolors = 2 - 1;
+    //int divider = 256 / ncolors;
     for(int i = 0 ; i < pali->height ; i++)
 	{
 	    for(int j = 0 ; j < pali->width ; j++)
 		{
+		    /* int t = BAYER_16X16[i%16][j%16]; */
+		    /* int corr = t / 1; */
+						      
 		    pixel[0] = img->data[i][j * 4 + 0];
 		    pixel[1] = img->data[i][j * 4 + 1];
 		    pixel[2] = img->data[i][j * 4 + 2];
 		    
-		    diff[0] = BAYER_16X16[i%16][j%16];
-		    diff[1] = BAYER_16X16[i%16][j%16];
-		    diff[2] = BAYER_16X16[i%16][j%16];
+		    corr[0] = BAYER_16X16[i%16][j%16];
+		    corr[1] = BAYER_16X16[i%16][j%16];
+		    corr[2] = BAYER_16X16[i%16][j%16];
+
+		    printf("coucou\n");
 		    
-		    errorApplication(pixel, diff, 1.0/cbrt(pali->pal_len));
+		    errorApplication(pixel, corr, 1);
+		    
+		    pali->data[i][j] = findClosestColorFromPalette(pixel, pali); 
+		}
+	}
+    return 1;
+}
+
+int
+ordered_pal_image_216(struct pal_image* pali, const struct image* img) {
+    unsigned char pixel[3];
+    int  corr[3];
+    int  ncolors = 5;
+    //int divider = 256 / ncolors;
+    for(int i = 0 ; i < pali->height ; i++)
+	{
+	    for(int j = 0 ; j < pali->width ; j++)
+		{
+		    /* int t = BAYER_16X16[i%16][j%16]; */
+		    /* int corr = t / 1; */
+						      
+		    pixel[0] = img->data[i][j * 4 + 0];
+		    pixel[1] = img->data[i][j * 4 + 1];
+		    pixel[2] = img->data[i][j * 4 + 2];
+		    
+		    corr[0] = BAYER_16X16[i%16][j%16];
+		    corr[1] = BAYER_16X16[i%16][j%16];
+		    corr[2] = BAYER_16X16[i%16][j%16];
+
+		    //printf("coucou\n");
+
+		    //int i1 = (pixel[0] + corr[0]); CLAMP( i1, 0, 3 );
+		    
+		    
+		    errorApplication(pixel, corr, ncolors);
 		    
 		    pali->data[i][j] = findClosestColorFromPalette(pixel, pali); 
 		}

@@ -6,6 +6,7 @@
 #include "palette.h"
 #include "dithering.h"
 #include "scaling.h"
+#include "colorspace.h"
 
 void usage(FILE *f, char **argv);
 void fast_automatic(struct pal_image* pali, struct image* img) {
@@ -29,13 +30,13 @@ main(int argc, char **argv)
     struct image* img;
     struct pal_image* pali;
     int rc;
-    int argp = 0, argd = 0, argx = 0, argw = 0, argh = 0, argP = 0, argf = 0, arpa = 0 ;
+    int argp = 0, argd = 0, argx = 0, argw = 0, argh = 0, argP = 0, argf = 0, argl = 0;
     
     //lecture des options
     while(1) {
         int opt;
 
-        opt = getopt(argc, argv, "d:p:P:w:h:fx"); //"ab::c:" argless a, optarg b, mandatoryarg c
+        opt = getopt(argc, argv, "d:p:P:w:h:l:fx"); //"ab::c:" argless a, optarg b, mandatoryarg c
         if(opt < 0)
             break;
 	
@@ -71,6 +72,10 @@ main(int argc, char **argv)
 	    if(optarg != NULL) argw = atoi(optarg);
 	    else argw = 0;
 	    break;
+	case 'l' : // "l" comme "espace cholorimétrique"
+	    if(optarg != NULL) argl = atoi(optarg);
+	    else argl = 0;
+	    break;
 	case 'f': // "f" comme "fast"
 	    argf = 1;
 	    break;
@@ -92,6 +97,15 @@ main(int argc, char **argv)
     if(img == NULL) {
         fprintf(stderr, "Couldn't read %s\n", argv[optind]);
         return 1;
+    }
+
+    //changement de l'espace colorimétrique
+    if ( argl == 1 ) {
+	image_rgb_to_lab ( img ) ;
+    } else if ( argl == 2 ) {
+	image_rgb_to_luv ( img ) ;
+    } else {
+	fprintf(stderr , "-l : bad argument\n") ;
     }
 
     //redimensionnement
@@ -207,7 +221,7 @@ main(int argc, char **argv)
 	break;
     case 3:
 	printf("Conversion en image indexée + tramage ordonné\n");
-	if(ordered_pal_image(pali, img) == -1) {
+	if(ordered_pal_image_216(pali, img) == -1) {
 	    fprintf(stderr, "Conversion error\n");
 	    free_image(img);
 	    free_pal_image(pali);

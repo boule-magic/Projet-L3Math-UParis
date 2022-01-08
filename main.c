@@ -72,7 +72,7 @@ main(int argc, char **argv)
 	    if(optarg != NULL) argw = atoi(optarg);
 	    else argw = 0;
 	    break;
-	case 'l' : // "l" comme "espace cholorimétrique"
+	case 'l' : // "l" comme "espace chromatique"
 	    if(optarg != NULL) argl = atoi(optarg);
 	    else argl = 0;
 	    break;

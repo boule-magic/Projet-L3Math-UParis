@@ -100,7 +100,8 @@ main(int argc, char **argv)
     }
 
     //changement de l'espace colorimétrique
-    if ( argl == 1 ) {
+    if ( argl == 0 ) {
+    } else if ( argl == 1 ) {
 	image_rgb_to_lab ( img ) ;
     } else if ( argl == 2 ) {
 	image_rgb_to_luv ( img ) ;
@@ -228,7 +229,7 @@ main(int argc, char **argv)
 	break;
     case 3:
 	printf("Conversion en image indexée + tramage ordonné\n");
-	if(ordered_pal_image_216(pali, img) == -1) {
+	if(ordered_pal_image(pali, img, 1) == -1) {
 	    fprintf(stderr, "Conversion error\n");
 	    free_image(img);
 	    free_pal_image(pali);

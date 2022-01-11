@@ -4,15 +4,15 @@ Il s'agit d'un petit programme de compression d'image qui réduit une image PNG 
 
 | image | result | static/dynamic | colors | dithering |
 | --- | --- | --- | --- | --- |
-| source |  <img src="samples/aardvark.png" alt="aardvark" width="300"/> | | | |
-| black & white |  <img src="samples/sample_static_2.png" alt="aardvark" width="300"/> | static | 2 | no |
-| black & white |  <img src="samples/sample_static_2_atkinson.png" alt="aardvark" width="300"/> | static | 2 | atkinson |
-| saturated |  <img src="samples/sample_static_8.png" alt="aardvark" width="300"/> | static | 8 | no |
-| saturated |  <img src="samples/sample_static_8_atkinson.png" alt="aardvark" width="300"/> | static | 8 | atkinson |
-| 252 colors |  <img src="samples/sample_static_252.png" alt="aardvark" width="300"/> | static | 252 | no |
-| 252 colors  |  <img src="samples/sample_static_252_atkinson.png" alt="aardvark" width="300"/> | static | 256 | atkinson
-| 2 colors  |  <img src="samples/sample_dynamic_2.png" alt="aardvark" width="300"/> | dynamic | 2 | no |
-| 256 colors  |  <img src="samples/sample_dynamic_256.png" alt="aardvark" width="300"/> | dynamic | 256 | no |
+| source |  ![aardvark.png](samples/aardvark.png) | | | |
+| blanck & white |  ![sample_static_2.png](samples/sample_static_2.png) | static | 2 | no |
+| blanck & white |  ![sample_static_2_atkinson.png](samples/sample_static_2_atkinson.png) | static | 2 | atkinson |
+| saturated |  ![sample_static_8.png](samples/sample_static_8.png) | static | 8 | no |
+| saturated |  ![sample_static_8_atkinson.png](samples/sample_static_8_atkinson.png) | static | 8 | atkinson |
+| 252 colors |  ![sample_static_252.png](samples/sample_static_252.png) | static | 252 | no |
+| 252 colors  |  ![sample_static_252_atkinson.png](samples/sample_static_252_atkinson.png) | static | 256 | atkinson
+| 2 colors  |  ![sample_dynamic_2.png](samples/sample_dynamic_2.png) | dynamic | 2 | no |
+| 256 colors  |  ![sample_dynamic_256.png](samples/sample_dynamic_256.png) | dynamic | 256 | no |
 
 ## Compilation
 #### Setup : 

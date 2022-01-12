@@ -52,7 +52,7 @@ make dynamic
  * d \[arg\] : Choix de l'algorithme de diffusion d'erreur
  * h \[arg\] : Choix de la hauteur de l'image de sortie (en pixel)
  * w \[arg\] : Choix de la largeur de l'image de sortie (en pixel)
- * x \[arg\] : Ouverture de l'image dans la visionneuse d'image par défault d'ubuntu (Eye of Gnome)
+ * x         : Ouverture de l'image dans la visionneuse d'image par défault d'ubuntu (Eye of Gnome)
 #### Arguments de l'options "-p" :
   * 2 : Palette de 2 couleurs : noir et blanc
   * 8 : Palette de 8 couleurs : saturation

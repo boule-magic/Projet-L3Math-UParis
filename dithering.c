@@ -135,13 +135,40 @@ atkinson_pal_image(struct pal_image* pali, struct image* img) {
     return 1;
 }
 
+int
+ordered_pal_image_static(struct pal_image* pali, const struct image* img) {
+    if(pali->pal == NULL) {
+        return -1;
+    }
+    switch(pali->pal_len) {
+    case 2:
+	ordered_pal_image_nb_rgb(pali,img,1,1,1);
+	break;
+    case 8:
+	ordered_pal_image_nb_rgb(pali,img,1,1,1);
+	break;
+    case 16:
+	ordered_pal_image_nb_rgb(pali,img,2,2,2);
+	break;
+    case 64:
+	ordered_pal_image_nb_rgb(pali,img,3,3,3);
+	break;
+    case 216:
+	ordered_pal_image_nb_rgb(pali,img,5,5,5);
+	break;
+    case 252:
+	ordered_pal_image_nb_rgb(pali,img,5,6,5);
+	break;	
+    }
+    return 1;
+}
 
 int
-ordered_pal_image_8(struct pal_image* pali, const struct image* img) {
+ordered_pal_image_nb_rgb(struct pal_image* pali, const struct image* img, int nb_red, int nb_green, int nb_blue) {
+    // (r,g,b) ∈ ([0,nb_red],[0,nb_green],[0,nb_blue])
     unsigned char pixel[3];
     int  corr[3];
-    int ncolors = 2;
-    int divider = 256 / ncolors;
+    int divider[3] = {256/nb_red, 256/nb_green, 256/nb_blue} ;
     for(int i = 0 ; i < pali->height ; i++)
 	{
 	    for(int j = 0 ; j < pali->width ; j++)
@@ -150,23 +177,25 @@ ordered_pal_image_8(struct pal_image* pali, const struct image* img) {
 		    pixel[1] = img->data[i][j * 4 + 1];
 		    pixel[2] = img->data[i][j * 4 + 2];
 		    
-		    corr[0] = BAYER_16X16[i%16][j%16] / ncolors;
-		    corr[1] = BAYER_16X16[i%16][j%16] / ncolors;
-		    corr[2] = BAYER_16X16[i%16][j%16] / ncolors;
+		    corr[0] = BAYER_16X16[i%16][j%16] / nb_red;
+		    corr[1] = BAYER_16X16[i%16][j%16] / nb_green;
+		    corr[2] = BAYER_16X16[i%16][j%16] / nb_blue;
 
-		    int	i1	= (pixel[0] + corr[0]) / divider;
-		    i1 = i1 < ncolors ? i1 : ncolors;
-		    i1 = i1 * divider < 255 ? i1 * divider : 255;
-		    int	i2	= (pixel[1] + corr[1]) / divider;
-		    i2 = i2 < ncolors ? i2 : ncolors;
-		    i2 = i2 * divider < 255 ? i2 * divider : 255;
-		    int	i3	= (pixel[2] + corr[2]) / divider;
-		    i3 = i3 < ncolors ? i3 : ncolors;
-		    i3 = i3 * divider < 255 ? i3 * divider : 255;
+		    int	a = (pixel[0] + corr[0]) / divider[0];
+		    a = a < nb_red ? a : nb_red;
+		    a = a * divider[0] < 255 ? a * divider[0] : 255;
+		    
+		    int	b = (pixel[1] + corr[1]) / divider[1];
+		    b = b < nb_green ? b : nb_green;
+		    b = b * divider[1] < 255 ? b * divider[1] : 255;
+		    
+		    int	c = (pixel[2] + corr[2]) / divider[2];
+		    c = c < nb_blue ? c : nb_blue;
+		    c = c * divider[2] < 255 ? c * divider[2] : 255;
 
-		    pixel[0] = i1;
-		    pixel[1] = i2;
-		    pixel[2] = i3;
+		    pixel[0] = a;
+		    pixel[1] = b;
+		    pixel[2] = c;
 		    
 		    pali->data[i][j] = findClosestColorFromPalette(pixel, pali);
 		}

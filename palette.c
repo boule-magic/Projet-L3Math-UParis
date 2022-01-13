@@ -312,9 +312,9 @@ insert(struct nb_couleur newnc, struct node *abr) {
 
 void
 addTheMostCommonColors(struct node *tree, struct nb_couleur* nb_palette, int nb_palette_len_max, int* nb_palette_len) {
-    if(!tree) return;
-    if(tree->left)  addTheMostCommonColors(tree->left, nb_palette, nb_palette_len_max, nb_palette_len);
-    if(tree->right) addTheMostCommonColors(tree->right, nb_palette, nb_palette_len_max, nb_palette_len);
+    if(tree == NULL) return;
+    if(tree->left != NULL)  addTheMostCommonColors(tree->left, nb_palette, nb_palette_len_max, nb_palette_len);
+    if(tree->right != NULL) addTheMostCommonColors(tree->right, nb_palette, nb_palette_len_max, nb_palette_len);
     if (*nb_palette_len < nb_palette_len_max) {
 	(*nb_palette_len)++;
 	nb_palette[*nb_palette_len-1] = tree->nc;
@@ -384,7 +384,7 @@ theOneWithTheMostAmplitude(unsigned char* colors, long int premier, long int der
     max_amplitude = max(r_amplitude, max(g_amplitude, b_amplitude));
 
     if(max_amplitude == r_amplitude) color_reference = 0;
-    else if(max_amplitude == r_amplitude) color_reference = 1;
+    else if(max_amplitude == g_amplitude) color_reference = 1;
     else color_reference = 2;
 
     return color_reference;

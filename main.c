@@ -9,20 +9,7 @@
 #include "colorspace.h"
 
 void usage(FILE *f, char **argv);
-void fast_automatic(struct pal_image* pali, struct image* img) {
-    printf("Conversion en image indexée\n");
-    if(naive_pal_image(pali, img) == -1) {
-	fprintf(stderr, "Conversion error\n");
-	free(pali->pal);
-	if(img->height*img->width < 500000) {
-	    palette_dynamique_median_cut(pali, img, 256);
-	    floydSteinberg_pal_image(pali, img);
-	} else {
-	    palette_252(pali);
-	    atkinson_pal_image(pali, img);
-	}
-    }
-}
+void fast_automatic(struct pal_image* pali, struct image* img);
 
 int
 main(int argc, char **argv)
@@ -82,6 +69,9 @@ main(int argc, char **argv)
 	case 'x': // "x" comme "execution"
 	    argx = 1;
 	    break;
+	/* case 'a': // "a" comme "automatique" ? */
+	/*     argx = 1; */
+	/*     break; */
         default:
             return 1;
         }
@@ -89,7 +79,7 @@ main(int argc, char **argv)
 
     if(argc != optind + 1 && argc != optind + 2) {
         usage(stdout, argv);
-        return 1;
+        return 0;
     }
     
     //lecture de l'image source et mise en mémoire
@@ -101,7 +91,6 @@ main(int argc, char **argv)
 
     /*//changement de l'espace colorimétrique
     if ( argl == 1 ) {
->>>>>>> 9c0a82ca7788ff7dd2f83c1d0b74d70d0c7e68d7
 	image_rgb_to_lab ( img ) ;
     } else if ( argl == 2 ) {
 	image_rgb_to_luv ( img ) ;
@@ -166,21 +155,21 @@ main(int argc, char **argv)
 	//if(argl == 1) pal_image_rgb_to_lab ( pali ) ; 
 	break;
     case 0:
-	if (argP > 1 && argf == 0) {
+	if (argP > 1 && argP <= 256 && argf == 0) {
 	    printf("Palette dynamique de %d couleurs : median cut\n", argP);
 	    if (palette_dynamique_median_cut(pali, img, argP) == -1) {
 		free_image(img);
 		free_pal_image(pali);
 		return 1;
 	    }
-	} else if (argP > 1 && argf == 1) {
+	} else if (argP > 1 && argP <= 256 && argf == 1) {
 	    printf("Palette dynamique de %d couleurs : couleurs les plus présentes\n", argP);
 	    palette_dynamique( pali , img , argP );
 	} else if (argP == 0) {
 	    printf("Palette de 256 couleurs maximum\n");
 	    printf("(ne fonctionne que sur les images de moins de 256 couleurs)\n");
 	} else {
-	    fprintf(stderr, "Bad argument\n");
+	    fprintf(stderr, "-P : Bad argument\n");
 	    return 1;
 	}
 	break;
@@ -228,16 +217,17 @@ main(int argc, char **argv)
 	}
 	break;
     case 3:
-	if(argp == 8) {
+	if(argp > 0) {
 	    printf("Conversion en image indexée + tramage ordonné\n");
-	    if(ordered_pal_image_8(pali, img) == -1) {
+	    if(ordered_pal_image_static(pali, img) == -1) {
 		fprintf(stderr, "Conversion error\n");
 		free_image(img);
 		free_pal_image(pali);
 		return 1;
 	    }
 	} else {
-	    printf("Il faut coder les autres cas\n\n");
+	    fprintf(stderr, "Tramage ordonné disponible qu'en palette statique (pour l'instant)\n");
+	    return 1;
 	}
 	break;
     default:
@@ -291,8 +281,8 @@ main(int argc, char **argv)
 	}
 	else {
 	    char cmd[strlen(argv[optind + 1]) + 5];
-	    strcpy(cmd, "eog ");
-	    strcat(cmd, argv[optind + 1]);	
+	    strcpy(cmd, "eog "); 
+	    strcat(cmd, argv[optind + 1]);
 	    int syst = system(cmd);
 	    if ( syst != 0 ) {
 		fprintf( stderr, "Unable to launch command  : %s\n", cmd );
@@ -318,7 +308,23 @@ void usage(FILE *f, char **argv) {
     fprintf(f, "  -h [ARG]                   choose the height of the new image (in pixels)\n");
     fprintf(f, "  -w [ARG]                   choose the width of the new image (in pixels)\n");
     fprintf(f, "  -f                         \"fast\" : to associated with the 'P' option to get the \"most common colors\" dynamic palette algorithm\n");
-    fprintf(f, "  -x                         open the new image in Eye of Gnome (Ubuntu's default image viewer)\n\n");
-    fprintf(f, "Louise Lemaire & Benoît Montazeaud\n");
+    fprintf(f, "  -x                         open the new image in Eye of Gnome (Ubuntu's default image viewer)\n");
+    //fprintf(f, "  -a                         automatic choice of the right compression algorithm for this image\n\n");
+    fprintf(f, "\nLouise Lemaire & Benoît Montazeaud\n");
+}
+
+void fast_automatic(struct pal_image* pali, struct image* img) {
+    printf("Conversion en image indexée d'image de 256 couleurs ou moins\n");
+    if(naive_pal_image(pali, img) == -1) {
+	printf("Conversion error\n");
+	free(pali->pal);
+	if(img->height*img->width < 500000) {
+	    palette_dynamique_median_cut(pali, img, 256);
+	    floydSteinberg_pal_image(pali, img);
+	} else {
+	    palette_252(pali);
+	    atkinson_pal_image(pali, img);
+	}
+    }
 }
 
